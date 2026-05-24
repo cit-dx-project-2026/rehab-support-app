@@ -1,0 +1,60 @@
+// ==========================================
+// 1. 【ユーザーテスト用】外注委託（想定）のコアシステムダミーデータ
+// ==========================================
+const coreSystemData = {
+    loginDays: 8,
+    aiAdvice: "素晴らしい継続です！この調子で健康管理を続けましょう。",
+    nextReward: "マッサージチェア30分券",
+    announcements: [
+        { date: "2026/05/10", title: "新緑のリハビリウォーキング大会開催のお知らせ" },
+        { date: "2026/05/08", title: "【重要】夏季休診期間（8/11〜8/15）について" }
+    ]
+};
+
+// ==========================================
+// 2. 【ご友人発案】ログイン情報を自動チェックして守る共通関数
+// ==========================================
+function checkAuth() {
+    // ブラウザの一時保存ポケット（localStorage）からユーザーIDを取り出す
+    const userId = localStorage.getItem('login_user_id');
+
+    // もしポケットに何も入っていなければ（未ログインの不正アクセス）
+    if (!userId) {
+        alert("ログインが必要です。ログイン画面に戻ります。");
+        window.location.href = "login.html"; // ログイン画面へ強制送還
+        return null;
+    }
+
+    // ログインしていれば、そのユーザーIDを返す
+    return userId;
+}
+
+// ログイン成功時にポケットにIDをしまう関数（岩松さんの画面で呼び出す）
+function saveLoginInfo(userId) {
+    localStorage.setItem('login_user_id', userId);
+}
+
+// ログアウト時にポケットを空にする関数（上野さんの画面で呼び出す）
+function logout() {
+    localStorage.removeItem('login_user_id');
+    window.location.href = "login.html";
+}
+
+// ==========================================
+// 3. 【デモ用】ホーム画面にダミーデータを反映させる関数
+// ==========================================
+function loadHomeData() {
+    const userId = checkAuth(); // まずログインチェック
+    if (!userId) return;
+
+    // 各HTML要素にデータを流し込む（要素が存在する場合のみ）
+    if(document.getElementById('display-login-days')) {
+        document.getElementById('display-login-days').innerText = coreSystemData.loginDays;
+    }
+    if(document.getElementById('display-ai-advice')) {
+        document.getElementById('display-ai-advice').innerText = coreSystemData.aiAdvice;
+    }
+    if(document.getElementById('display-next-reward')) {
+        document.getElementById('display-next-reward').innerText = coreSystemData.nextReward;
+    }
+}

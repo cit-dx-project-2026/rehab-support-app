@@ -1,0 +1,45 @@
+@charset "utf-8";
+
+/* ==========================================
+   共通基本スタイル
+   ========================================== */
+body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f7f9;
+    color: #333;
+}
+
+/* 外部設計書22ページ準拠：初期設定テーマ（青） */
+.theme-blue {
+    background-color: #f0f4f8;
+}
+.theme-blue h2 {
+    color: #004080;
+    border-bottom: 2px solid #004080;
+    padding-bottom: 8px;
+}
+
+/* 外部設計書22ページ準拠：フォントサイズ設定 */
+.font-medium {
+    font-size: 16px;
+}
+
+/* 共通ボタンの基本スタイル */
+button {
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #004080;
+}
