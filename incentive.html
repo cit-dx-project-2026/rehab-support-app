@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特典管理 - ゲーミング・リハビリステーション</title>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        /* ===================================================
+           ルールA準拠：鈴木（特典）専用CSS（すべて s- を付与）
+           =================================================== */
+        .s-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        /* ヘッダー・ナビゲーション */
+        .s-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .s-back-btn {
+            background-color: #ffffff;
+            color: #333333;
+            border: 1px solid #cccccc;
+            padding: 6px 14px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        /* 画面42：特典予測表示エリア */
+        .s-prediction-card {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .s-login-days-title {
+            font-size: 14px;
+            margin: 0;
+            opacity: 0.9;
+        }
+        .s-login-days-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 5px 0;
+            display: block;
+        }
+        .s-next-reward-box {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .s-next-reward-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0 0 4px 0;
+            color: #ffe066;
+        }
+        .s-next-reward-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .s-next-reward-desc {
+            font-size: 12px;
+            margin: 2px 0 0 0;
+            opacity: 0.8;
+        }
+        
+        /* 進捗ゲージ */
+        .s-gauge-container {
+            margin-top: 15px;
+        }
+        .s-gauge-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .s-gauge-bg {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            height: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .s-gauge-bar {
+            background-color: #ffe066;
+            height: 100%;
+            width: 28.5%; /* 2日 / 7日 ≒ 28.5% */
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        /* 画面44：特典一覧表示エリア */
+        .s-list-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #333333;
+        }
+        .s-reward-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .s-reward-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .s-reward-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .s-icon-wrapper {
+            font-size: 28px;
+            width: 45px;
+            height: 45px;
+            background-color: #f0f4f8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .s-reward-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: #333333;
+        }
+        .s-reward-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #666666;
+        }
+
+        /* 状態クラス：利用可能 */
+        .s-status-available {
+            border-left: 5px solid #28a745;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .s-status-available:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+        .s-use-btn {
+            background-color: #28a745;
+            color: #ffffff;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .s-use-btn:hover {
+            background-color: #218838;
+        }
+
+        /* 状態クラス：利用不可能（ぼかし） */
+        .s-status-locked {
+            border-left: 5px solid #6c757d;
+            opacity: 0.6;
+            filter: blur(0.5px); /* 仕様：ぼかし */
+        }
+        .s-lock-badge {
+            font-size: 12px;
+            color: #6c757d;
+            background-color: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* 状態クラス：使用済み */
+        .s-status-used {
+            border-left: 5px solid #ffe066;
+            background-color: #f8f9fa;
+        }
+        .s-used-badge {
+            font-size: 12px;
+            color: #999999;
+            font-weight: bold;
+        }
+
+        /* ===================================================
+           画面45：特典利用確認モーダル（ルールB準拠）
+           =================================================== */
+        .s-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* 仕様：背景を暗転 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .s-modal-content {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: s-fadeIn 0.2s ease-out;
+        }
+        @keyframes s-fadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .s-modal-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        .s-modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #333333;
+        }
+        .s-modal-coupon-info {
+            background-color: #f1f3f5;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .s-modal-coupon-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #0056b3;
+            margin: 0;
+        }
+        .s-modal-coupon-shop {
+            font-size: 13px;
+            color: #666666;
+            margin: 4px 0 0 0;
+        }
+        .s-modal-warning {
+            color: #dc3545; /* 仕様：赤字指定 */
+            font-size: 12px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .s-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .s-btn-cancel {
+            background-color: #6c757d;
+        }
+        .s-btn-cancel:hover {
+            background-color: #5a6268;
+        }
+        .s-btn-confirm {
+            background-color: #28a745;
+        }
+        .s-btn-confirm:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body class="theme-blue font-medium">
+
+    <div class="s-container">
+        
+        <header class="s-header">
+            <h2>特典管理</h2>
+            <button class="s-back-btn" onclick="window.location.href='home.html'">◀ ホームへ</button>
+        </header>
+
+        <section class="s-prediction-card">
+            <p class="s-login-days-title">連続ログイン日数</p>
+            <span class="s-login-days-value">2日</span> <div class="s-next-reward-box">
+                <p class="s-next-reward-title">🎁 次の特典まで あと5日</p>
+                <p class="s-next-reward-name">ジュース無料券</p>
+                <p class="s-next-reward-desc">温泉施設でお好きなジュース1本無料</p>
+            </div>
+
+            <div class="s-gauge-container">
+                <div class="s-gauge-labels">
+                    <span>2日</span>
+                    <span>7日達成で獲得</span>
+                </div>
+                <div class="s-gauge-bg">
+                    <div class="s-gauge-bar"></div>
+                </div>
+            </div>
+        </section>
+
+        <h3 class="s-list-section-title">全特典一覧</h3>
+        <section class="s-reward-list">
+
+            <div class="s-reward-card s-status-available" onclick="openUseModal('ジュース無料券', '◯◯温泉', '♨')">
+                <div class="s-reward-left">
+                    <div class="s-icon-wrapper">♨</div>
+                    <div class="s-reward-info">
+                        <h4>ジュース無料券 ✅</h4> <p>店舗：◯◯温泉 | 期限：残り7日</p>
+                    </div>
+                </div>
+                <button class="s-use-btn">利用する</button>
+            </div>
+
+            <div class="s-reward-card s-status-locked">
+                <div class="s-reward-left">
+                    <div class="s-icon-wrapper">🛍</div>
+                    <div class="s-reward-info">
+                        <h4>マッサージチェア30分券</h4>
+                        <p>14日ログインで獲得（現在50%達成）</p>
+                    </div>
+                </div>
+                <span class="s-lock-badge">あと7日</span>
+            </div>
+
+            <div class="s-reward-card s-status-used">
+                <div class="s-reward-left">
+                    <div class="s-icon-wrapper">♨</div>
+                    <div class="s-reward-info">
+                        <h4>【使用済み】温泉入浴券</h4>
+                        <p>獲得条件：60日ログイン達成特典</p>
+                    </div>
+                </div>
+                <span class="s-used-badge">済</span>
+            </div>
+
+            </section>
+    </div>
+
+    <div id="use-modal" class="s-modal-overlay" style="display: none;">
+        <div class="s-modal-content">
+            <div class="s-modal-icon" id="modal-shop-icon">♨</div>
+            <h3 class="s-modal-title">チケットを利用しますか？</h3>
+            
+            <div class="s-modal-coupon-info">
+                <p class="s-modal-coupon-name" id="modal-coupon-name">ジュース無料券</p>
+                <p class="s-modal-coupon-shop" id="modal-coupon-shop">店舗：◯◯温泉</p>
+            </div>
+            
+            <p class="s-modal-warning">※利用後は元に戻せません。</p> <div class="s-modal-actions">
+                <button class="s-btn-cancel" onclick="closeUseModal()">× キャンセル</button>
+                <button class="s-btn-confirm" onclick="executeUseCoupon()">✓ 利用する</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    
+    <script>
+        // ==========================================
+        // ルールD準拠：画面起動時のログインチェック自動センサー
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", function() {
+            // 鈴木さんが用意したapp.jsの認証関数を呼び出し
+            const currentUserId = checkAuth(); 
+            if (currentUserId) {
+                console.log("特典管理画面：認証成功。ユーザーID:", currentUserId);
+            }
+        });
+
+        // ==========================================
+        // モーダル表示制御ロジック
+        // ==========================================
+        function openUseModal(couponName, shopName, icon) {
+            document.getElementById('modal-coupon-name').innerText = couponName;
+            document.getElementById('modal-coupon-shop').innerText = "店舗：" + shopName;
+            document.getElementById('modal-shop-icon').innerText = icon;
+            document.getElementById('use-modal').style.display = 'flex'; // モーダルを表示
+        }
+
+        function closeUseModal() {
+            document.getElementById('use-modal').style.display = 'none'; // モーダルを非表示
+        }
+
+        function executeUseCoupon() {
+            alert("チケットを利用しました。店舗スタッフに画面を提示してください。");
+            closeUseModal();
+            // 本来はここでステータス更新処理に遷移（今回はデモ完了のためホームに戻すかリロード）
+            window.location.href = 'home.html';
+        }
+    </script>
+</body>
+</html>
