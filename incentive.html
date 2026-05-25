@@ -14,14 +14,22 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 10px;
+            background-color: #f4f7f9; /* ベースを少しグレーにしてチケットを目立たせる */
+            min-height: 100vh;
         }
 
-        /* ヘッダー・ナビゲーション */
+        /* ヘッダー */
         .s-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            border-bottom: 2px solid #004080;
+            padding-bottom: 10px;
+        }
+        .s-header h2 {
+            margin: 0;
+            color: #004080;
         }
         .s-back-btn {
             background-color: #ffffff;
@@ -30,6 +38,7 @@
             padding: 6px 14px;
             font-size: 14px;
             border-radius: 4px;
+            cursor: pointer;
         }
 
         /* 画面42：特典予測表示エリア */
@@ -92,56 +101,79 @@
             border-radius: 6px;
             height: 12px;
             overflow: hidden;
-            position: relative;
         }
         .s-gauge-bar {
             background-color: #ffe066;
             height: 100%;
-            width: 28.5%; /* 2日 / 7日 ≒ 28.5% */
+            width: 28.5%; /* 2日 / 7日 */
             border-radius: 6px;
-            transition: width 0.3s ease;
         }
 
-        /* 画面44：特典一覧表示エリア */
+        /* ===================================================
+           修正：画面44：全特典一覧（画像1枚目参照：チケット風）
+           =================================================== */
         .s-list-section-title {
             font-size: 18px;
             font-weight: bold;
-            margin: 20px 0 10px 0;
+            margin: 25px 0 15px 0;
             color: #333333;
         }
         .s-reward-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
+
+        /* チケット共通の土台（画像1の縦型チケット風） */
         .s-reward-card {
             background-color: #ffffff;
-            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: relative;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+            overflow: hidden; /* ミシン目からはみ出た部分を隠す */
         }
+
+        /* 修正要件：利用できないチケットはぼかしを入れる */
+        .s-status-locked {
+            filter: blur(1.5px) grayscale(50%); /* 修正：ぼかしを適用 */
+            opacity: 0.7;
+            cursor: pointer; /* 画像2のためにクリック可能に */
+        }
+
+        /* 左側：チケットの左端（色付きの縦帯） */
+        .s-ticket-left-edge {
+            width: 8px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        /* チケット本体の内容 */
         .s-reward-left {
             display: flex;
             align-items: center;
             gap: 15px;
+            padding: 15px;
+            padding-left: 23px; /* 縦帯分＋余白 */
+            flex: 1;
         }
         .s-icon-wrapper {
             font-size: 28px;
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             background-color: #f0f4f8;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid #e0e0e0;
         }
         .s-reward-info h4 {
-            margin: 0 0 4px 0;
+            margin: 0 0 5px 0;
             font-size: 16px;
             color: #333333;
         }
@@ -151,133 +183,104 @@
             color: #666666;
         }
 
-        /* 状態クラス：利用可能 */
-        .s-status-available {
-            border-left: 5px solid #28a745;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .s-status-available:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-        }
-        .s-use-btn {
-            background-color: #28a745;
-            color: #ffffff;
-            font-size: 13px;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .s-use-btn:hover {
-            background-color: #218838;
+        /* 右側：チケットのミシン目と丸い切り欠き（画像1の見た目） */
+        .s-reward-right {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            position: relative;
         }
 
-        /* 状態クラス：利用不可能（ぼかし） */
-        .s-status-locked {
-            border-left: 5px solid #6c757d;
-            opacity: 0.6;
-            filter: blur(0.5px); /* 仕様：ぼかし */
+        /* 縦方向のミシン目 */
+        .s-ticket-perforation {
+            width: 1px;
+            height: 80%;
+            position: absolute;
+            left: -1px;
+            top: 10%;
+            border-left: 1px dashed #cccccc;
         }
-        .s-lock-badge {
-            font-size: 12px;
-            color: #6c757d;
-            background-color: #e9ecef;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
+
+        /* チケットの上下にある丸い切り欠き */
+        .s-reward-card::before,
+        .s-reward-card::after {
+            content: '';
+            position: absolute;
+            right: 80px; /* ミシン目の位置に合わせて調整 */
+            width: 16px;
+            height: 16px;
+            background-color: #f4f7f9; /* コンテナの背景色と合わせる */
+            border-radius: 50%;
+            z-index: 5;
         }
+        .s-reward-card::before { top: -8px; }
+        .s-reward-card::after { bottom: -8px; }
+
+        /* 状態クラス：利用可能 */
+        .s-status-available .s-ticket-left-edge { background-color: #28a745; }
+        .s-status-available .s-ticket-perforation { border-left-color: #28a745; border-left-style: dashed; }
+        .s-status-available { cursor: pointer; transition: transform 0.2s; }
+        .s-status-available:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        .s-use-btn { background-color: #28a745; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+        .s-use-btn:hover { background-color: #218838; }
+
+        /* 状態クラス：利用不可能 */
+        .s-status-locked .s-ticket-left-edge { background-color: #dc3545; } /* 赤でロック表示 */
+        .s-status-locked .s-reward-right { filter: blur(0.5px); } /* ミシン目も少しぼかす */
+        .s-lock-badge { font-size: 11px; color: #dc3545; background-color: #f8d7da; padding: 3px 6px; border-radius: 4px; font-weight: bold; white-space: nowrap; }
 
         /* 状態クラス：使用済み */
-        .s-status-used {
-            border-left: 5px solid #ffe066;
-            background-color: #f8f9fa;
-        }
-        .s-used-badge {
-            font-size: 12px;
-            color: #999999;
-            font-weight: bold;
-        }
+        .s-status-used { opacity: 0.5; background-color: #f9f9f9; }
+        .s-status-used .s-ticket-left-edge { background-color: #6c757d; }
+        .s-used-badge { font-size: 12px; color: #999999; font-weight: bold; margin-right: 15px; }
 
         /* ===================================================
-           画面45：特典利用確認モーダル（ルールB準拠）
+           画面45：モーダル共通土台（画像2準拠）
            =================================================== */
         .s-modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); /* 仕様：背景を暗転 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* 画像2のように暗めに */
+            display: flex; justify-content: center; align-items: center;
             z-index: 1000;
         }
         .s-modal-content {
             background-color: #ffffff;
             border-radius: 12px;
-            padding: 24px;
-            width: 85%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 85%; max-width: 400px;
+            overflow: hidden; /* コンテンツが角丸からはみ出ないように */
             animation: s-fadeIn 0.2s ease-out;
         }
-        @keyframes s-fadeIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .s-modal-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-        .s-modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 0 10px 0;
-            color: #333333;
-        }
-        .s-modal-coupon-info {
+        @keyframes s-fadeIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* モーダルのヘッダー・アクション */
+        .s-modal-close-wrapper { text-align: right; padding: 10px 15px; background-color: #f8f9fa; border-bottom: 1px solid #eeeeee; }
+        .s-modal-close { background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; padding: 0; }
+        .s-modal-close:hover { color: #333; }
+        
+        .s-modal-body { padding: 25px; text-align: center; }
+        .s-modal-title { font-size: 20px; font-weight: bold; margin: 0 0 15px 0; color: #333333; }
+        .s-modal-desc { font-size: 14px; color: #666666; margin-bottom: 25px; line-height: 1.5; }
+        .s-modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+        /* ---------------------------------------------------
+           修正：画像2枚目参照（利用できないチケットのモーダル）
+           --------------------------------=================== */
+        .s-modal-condition-box {
             background-color: #f1f3f5;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: left;
         }
-        .s-modal-coupon-name {
-            font-weight: bold;
-            font-size: 16px;
-            color: #0056b3;
-            margin: 0;
-        }
-        .s-modal-coupon-shop {
-            font-size: 13px;
-            color: #666666;
-            margin: 4px 0 0 0;
-        }
-        .s-modal-warning {
-            color: #dc3545; /* 仕様：赤字指定 */
-            font-size: 12px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-        .s-modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        .s-btn-cancel {
-            background-color: #6c757d;
-        }
-        .s-btn-cancel:hover {
-            background-color: #5a6268;
-        }
-        .s-btn-confirm {
-            background-color: #28a745;
-        }
-        .s-btn-confirm:hover {
-            background-color: #218838;
-        }
+        .s-modal-condition-title { font-size: 13px; color: #666666; font-weight: bold; margin: 0 0 6px 0; }
+        .s-modal-condition-content { font-size: 15px; color: #dc3545; font-weight: bold; margin: 0; }
+        .s-modal-condition-desc { font-size: 12px; color: #666666; margin: 4px 0 0 0; }
+        
+        .s-btn-ok { background-color: #0056b3; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+        .s-btn-ok:hover { background-color: #004080; }
+
+        /* 利用確認用の緑モーダルは、今回修正要件にないため一旦非表示の仕組みのみ維持 */
     </style>
 </head>
 <body class="theme-blue font-medium">
@@ -286,79 +289,91 @@
         
         <header class="s-header">
             <h2>特典管理</h2>
-            <button class="s-back-btn" onclick="window.location.href='home.html'">◀ ホームへ</button>
+            <button class="s-back-btn">◀ ホームへ</button>
         </header>
 
         <section class="s-prediction-card">
             <p class="s-login-days-title">連続ログイン日数</p>
-            <span class="s-login-days-value">2日</span> <div class="s-next-reward-box">
+            <span class="s-login-days-value">2日</span>
+            <div class="s-next-reward-box">
                 <p class="s-next-reward-title">🎁 次の特典まで あと5日</p>
                 <p class="s-next-reward-name">ジュース無料券</p>
                 <p class="s-next-reward-desc">温泉施設でお好きなジュース1本無料</p>
             </div>
-
             <div class="s-gauge-container">
-                <div class="s-gauge-labels">
-                    <span>2日</span>
-                    <span>7日達成で獲得</span>
-                </div>
-                <div class="s-gauge-bg">
-                    <div class="s-gauge-bar"></div>
-                </div>
+                <div class="s-gauge-labels"><span>2日</span><span>7日達成で獲得</span></div>
+                <div class="s-gauge-bg"><div class="s-gauge-bar"></div></div>
             </div>
         </section>
 
         <h3 class="s-list-section-title">全特典一覧</h3>
         <section class="s-reward-list">
 
-            <div class="s-reward-card s-status-available" onclick="openUseModal('ジュース無料券', '◯◯温泉', '♨')">
-                <div class="s-reward-left">
+            <div class="s-reward-card s-status-available">
+                <div class="s-ticket-left-edge"></div> <div class="s-reward-left">
                     <div class="s-icon-wrapper">♨</div>
                     <div class="s-reward-info">
-                        <h4>ジュース無料券 ✅</h4> <p>店舗：◯◯温泉 | 期限：残り7日</p>
+                        <h4>ジュース無料券</h4>
+                        <p>店舗：◯◯温泉 | 期限：残り7日</p>
                     </div>
                 </div>
-                <button class="s-use-btn">利用する</button>
+                <div class="s-reward-right">
+                    <div class="s-ticket-perforation"></div> <button class="s-use-btn">利用する</button>
+                </div>
             </div>
 
-            <div class="s-reward-card s-status-locked">
-                <div class="s-reward-left">
+            <div class="s-reward-card s-status-locked" onclick="openLockedModal('マッサージチェア30分券', '🛍 ◯◯ドラッグストア')">
+                <div class="s-ticket-left-edge"></div> <div class="s-reward-left">
                     <div class="s-icon-wrapper">🛍</div>
                     <div class="s-reward-info">
                         <h4>マッサージチェア30分券</h4>
-                        <p>14日ログインで獲得（現在50%達成）</p>
+                        <p>14日ログイン達成特典</p>
                     </div>
                 </div>
-                <span class="s-lock-badge">あと7日</span>
+                <div class="s-reward-right">
+                    <div class="s-ticket-perforation"></div>
+                    <span class="s-lock-badge">あと7日</span>
+                </div>
             </div>
 
             <div class="s-reward-card s-status-used">
-                <div class="s-reward-left">
+                <div class="s-ticket-left-edge"></div> <div class="s-reward-left">
                     <div class="s-icon-wrapper">♨</div>
                     <div class="s-reward-info">
-                        <h4>【使用済み】温泉入浴券</h4>
-                        <p>獲得条件：60日ログイン達成特典</p>
+                        <h4>温泉入浴券</h4>
+                        <p>獲得済み | 使用済み</p>
                     </div>
                 </div>
-                <span class="s-used-badge">済</span>
+                <div class="s-reward-right">
+                    <div class="s-ticket-perforation"></div>
+                    <span class="s-used-badge">済</span>
+                </div>
             </div>
 
-            </section>
+        </section>
     </div>
 
-    <div id="use-modal" class="s-modal-overlay" style="display: none;">
+    <div id="locked-modal" class="s-modal-overlay" style="display: none;">
         <div class="s-modal-content">
-            <div class="s-modal-icon" id="modal-shop-icon">♨</div>
-            <h3 class="s-modal-title">チケットを利用しますか？</h3>
-            
-            <div class="s-modal-coupon-info">
-                <p class="s-modal-coupon-name" id="modal-coupon-name">ジュース無料券</p>
-                <p class="s-modal-coupon-shop" id="modal-coupon-shop">店舗：◯◯温泉</p>
+            <div class="s-modal-close-wrapper">
+                <button class="s-modal-close" onclick="closeModal('locked-modal')">×</button>
             </div>
             
-            <p class="s-modal-warning">※利用後は元に戻せません。</p> <div class="s-modal-actions">
-                <button class="s-btn-cancel" onclick="closeUseModal()">× キャンセル</button>
-                <button class="s-btn-confirm" onclick="executeUseCoupon()">✓ 利用する</button>
+            <div class="s-modal-body">
+                <div class="s-modal-title">この特典はまだ利用できません</div>
+                <p class="s-modal-desc">
+                    毎日ログインを続けて、リハビリステーションを完了させることで、この特典を獲得できます。
+                </p>
+                
+                <div class="s-modal-condition-box">
+                    <p class="s-modal-condition-title">獲得条件</p>
+                    <p class="s-modal-condition-content">連続ログイン日数を14日達成</p>
+                    <p class="s-modal-condition-desc">現在の進捗：7 / 14 日完了（あと7日）</p>
+                </div>
+                
+                <div class="s-modal-actions">
+                    <button class="s-btn-ok" onclick="closeModal('locked-modal')">OK</button>
+                </div>
             </div>
         </div>
     </div>
@@ -367,35 +382,28 @@
     
     <script>
         // ==========================================
-        // ルールD準拠：画面起動時のログインチェック自動センサー
+        // 【デモ用】フロントエンド確認のために認証をパスします
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
-            // 鈴木さんが用意したapp.jsの認証関数を呼び出し
-            const currentUserId = checkAuth(); 
-            if (currentUserId) {
-                console.log("特典管理画面：認証成功。ユーザーID:", currentUserId);
-            }
+            // 本番用のセンサーは一時的にコメントアウト（無効化）
+            // const currentUserId = checkAuth(); 
+            
+            console.log("【テストモード】フロントエンド確認のため、認証センサーをバイパスしました。");
         });
 
         // ==========================================
         // モーダル表示制御ロジック
         // ==========================================
-        function openUseModal(couponName, shopName, icon) {
-            document.getElementById('modal-coupon-name').innerText = couponName;
-            document.getElementById('modal-coupon-shop').innerText = "店舗：" + shopName;
-            document.getElementById('modal-shop-icon').innerText = icon;
-            document.getElementById('use-modal').style.display = 'flex'; // モーダルを表示
+        
+        // 修正：利用できないチケットをクリックした時のポップアップ（画像2）
+        function openLockedModal(couponName, shopName) {
+            // 今回はデモのため固定データで表示
+            document.getElementById('locked-modal').style.display = 'flex'; // モーダルを表示
         }
 
-        function closeUseModal() {
-            document.getElementById('use-modal').style.display = 'none'; // モーダルを非表示
-        }
-
-        function executeUseCoupon() {
-            alert("チケットを利用しました。店舗スタッフに画面を提示してください。");
-            closeUseModal();
-            // 本来はここでステータス更新処理に遷移（今回はデモ完了のためホームに戻すかリロード）
-            window.location.href = 'home.html';
+        // 共通：モーダルを閉じる
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none'; // モーダルを非表示
         }
     </script>
 </body>
