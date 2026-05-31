@@ -1,2 +1,459 @@
-<!--テスト-->
 
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>日次入力 | 医療アプリ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      width: 100%;
+      max-width: 430px;
+      background: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-icon {
+      width: 36px; height: 36px;
+      background: #2563eb;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .header-icon svg { color: #fff; }
+    .header-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+    .header-date  { font-size: 12px; color: #64748b; margin-top: 1px; }
+    .btn-logout {
+      background: #f1f5f9; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: 13px; color: #475569;
+      cursor: pointer; font-weight: 600;
+    }
+    .btn-logout:hover { background: #e2e8f0; }
+    .card {
+      width: 100%; max-width: 430px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin: 16px 0 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    }
+    .error-banner {
+      display: none;
+      background: #fff7ed;
+      border: 1px solid #fb923c;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: #c2410c;
+    }
+    .error-banner.show { display: flex; align-items: flex-start; gap: 8px; }
+    .section { margin-bottom: 22px; }
+    .section-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 700; color: #1e293b;
+      margin-bottom: 10px;
+    }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-choice {
+      flex: 1; min-width: 72px;
+      padding: 10px 8px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      background: #f8fafc;
+      font-size: 14px; font-weight: 600; color: #475569;
+      cursor: pointer; text-align: center;
+      transition: all .15s;
+    }
+    .btn-choice:hover { border-color: #93c5fd; background: #eff6ff; }
+    .btn-choice.selected { border-color: #2563eb; background: #2563eb; color: #fff; }
+    .btn-choice.error-field { border-color: #ef4444 !important; }
+    .mood-group { display: flex; gap: 6px; justify-content: space-between; }
+    .btn-mood {
+      flex: 1;
+      padding: 10px 4px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      background: #f8fafc;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .btn-mood .emoji { font-size: 22px; }
+    .btn-mood .score { font-size: 11px; color: #94a3b8; font-weight: 600; }
+    .btn-mood:hover { border-color: #93c5fd; background: #eff6ff; }
+    .btn-mood.selected { border-color: #2563eb; background: #eff6ff; }
+    .btn-mood.error-field { border-color: #ef4444 !important; }
+    #purpose-block {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    #purpose-block .purpose-label { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+    .purpose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn-purpose {
+      padding: 9px 6px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px; color: #475569; font-weight: 600;
+      cursor: pointer; text-align: center;
+      transition: all .15s;
+    }
+    .btn-purpose:hover { border-color: #93c5fd; background: #eff6ff; }
+    .btn-purpose.selected { border-color: #2563eb; background: #2563eb; color: #fff; }
+    .btn-purpose.error-field { border-color: #ef4444 !important; }
+    .time-row { display: flex; gap: 12px; }
+    .time-block { flex: 1; }
+    .time-block label { font-size: 12px; color: #64748b; margin-bottom: 5px; display: block; }
+    .time-input-wrap { position: relative; }
+    .time-input-wrap svg {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: #94a3b8; pointer-events: none;
+    }
+    .time-input {
+      width: 100%; padding: 10px 12px 10px 34px;
+      border: 2px solid #e2e8f0; border-radius: 10px;
+      font-size: 15px; color: #1e293b; background: #f8fafc;
+      outline: none; transition: border-color .15s;
+    }
+    .time-input:focus { border-color: #2563eb; background: #fff; }
+    .time-input.error-field { border-color: #ef4444 !important; }
+    .field-error { display: none; font-size: 12px; color: #ef4444; margin-top: 4px; font-weight: 600; }
+    .field-error.show { display: block; }
+    .btn-submit {
+      width: 100%; padding: 15px;
+      background: #2563eb; border: none; border-radius: 12px;
+      color: #fff; font-size: 16px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      transition: background .15s;
+    }
+    .btn-submit:hover { background: #1d4ed8; }
+    .footer { font-size: 11px; color: #94a3b8; padding: 12px 0 24px; text-align: center; }
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px;
+      width: 90%; max-width: 380px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15);
+    }
+    .modal-icon { font-size: 52px; margin-bottom: 12px; }
+    .modal-title { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+    .modal-sub   { font-size: 14px; color: #64748b; margin-bottom: 16px; }
+    .modal-msg {
+      border-radius: 10px; padding: 14px 16px;
+      font-size: 14px; font-weight: 600;
+      margin-bottom: 20px; line-height: 1.5;
+    }
+    .modal-msg.good { background: #f0fdf4; color: #166534; }
+    .modal-msg.bad  { background: #fff7ed; color: #9a3412; }
+    .btn-hospital {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 13px;
+      background: #f97316; border: none; border-radius: 12px;
+      color: #fff; font-size: 14px; font-weight: 700;
+      cursor: pointer; margin-bottom: 10px;
+    }
+    .btn-hospital:hover { background: #ea580c; }
+    .btn-home {
+      width: 100%; padding: 13px;
+      background: #2563eb; border: none; border-radius: 12px;
+      color: #fff; font-size: 15px; font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-home:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
+                 M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">日次入力</div>
+      <div class="header-date" id="today-date"></div>
+    </div>
+  </div>
+  <button class="btn-logout" onclick="handleLogout()">ログアウト</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="error-banner" id="error-banner">
+      <div id="error-banner-text"></div>
+    </div>
+
+    <!-- 気分 -->
+    <div class="section">
+      <div class="section-label"><span>😊</span> 今日の気分</div>
+      <div class="mood-group" id="mood-group">
+        <button class="btn-mood" data-val="1" onclick="selectMood(1)"><span class="emoji">😢</span><span class="score">1</span></button>
+        <button class="btn-mood" data-val="2" onclick="selectMood(2)"><span class="emoji">😟</span><span class="score">2</span></button>
+        <button class="btn-mood" data-val="3" onclick="selectMood(3)"><span class="emoji">😐</span><span class="score">3</span></button>
+        <button class="btn-mood" data-val="4" onclick="selectMood(4)"><span class="emoji">🙂</span><span class="score">4</span></button>
+        <button class="btn-mood" data-val="5" onclick="selectMood(5)"><span class="emoji">😄</span><span class="score">5</span></button>
+      </div>
+      <div class="field-error" id="err-mood">気分を選択してください</div>
+    </div>
+
+    <!-- 体調 -->
+    <div class="section">
+      <div class="section-label">体調</div>
+      <div class="btn-group" id="condition-group">
+        <button class="btn-choice" data-val="good"   onclick="selectCondition('good')">良い</button>
+        <button class="btn-choice" data-val="normal" onclick="selectCondition('normal')">普通</button>
+        <button class="btn-choice" data-val="bad"    onclick="selectCondition('bad')">悪い</button>
+      </div>
+      <div class="field-error" id="err-condition">体調を選択してください</div>
+    </div>
+
+    <!-- 外出 -->
+    <div class="section">
+      <div class="section-label"><span>🚶</span> 外出</div>
+      <div class="btn-group" id="outing-group">
+        <button class="btn-choice" data-val="yes" onclick="selectOuting('yes')">した</button>
+        <button class="btn-choice" data-val="no"  onclick="selectOuting('no')">していない</button>
+      </div>
+      <div class="field-error" id="err-outing">外出を選択してください</div>
+      <div id="purpose-block">
+        <div class="purpose-label">外出目的</div>
+        <div class="purpose-grid" id="purpose-group">
+          <button class="btn-purpose" data-val="hospital" onclick="selectPurpose('hospital')">通院</button>
+          <button class="btn-purpose" data-val="shopping" onclick="selectPurpose('shopping')">買い物</button>
+          <button class="btn-purpose" data-val="walk"     onclick="selectPurpose('walk')">散歩・運動</button>
+          <button class="btn-purpose" data-val="work"     onclick="selectPurpose('work')">仕事</button>
+          <button class="btn-purpose" data-val="social"   onclick="selectPurpose('social')">友人・家族との交流</button>
+          <button class="btn-purpose" data-val="other"    onclick="selectPurpose('other')">その他</button>
+        </div>
+        <div class="field-error" id="err-purpose">外出目的を選択してください</div>
+      </div>
+    </div>
+
+    <!-- 睡眠の質 -->
+    <div class="section">
+      <div class="section-label"><span>🌙</span> 睡眠の質</div>
+      <div class="btn-group" id="sleep-group">
+        <button class="btn-choice" data-val="deep"    onclick="selectSleep('deep')">深い</button>
+        <button class="btn-choice" data-val="shallow" onclick="selectSleep('shallow')">浅い</button>
+      </div>
+      <div class="field-error" id="err-sleep">睡眠の質を選択してください</div>
+    </div>
+
+    <!-- 就寝・起床時間 -->
+    <div class="section">
+      <div class="section-label"><span>🕐</span> 就寝・起床時間</div>
+      <div class="time-row">
+        <div class="time-block">
+          <label for="sleep-time">就寝時間</label>
+          <div class="time-input-wrap">
+            <input type="time" id="sleep-time" class="time-input" />
+          </div>
+        </div>
+        <div class="time-block">
+          <label for="wake-time">起床時間</label>
+          <div class="time-input-wrap">
+            <input type="time" id="wake-time" class="time-input" />
+          </div>
+        </div>
+      </div>
+      <div class="field-error" id="err-time">起床時間は就寝時間より後に設定してください</div>
+    </div>
+
+    <button class="btn-submit" onclick="handleSubmit()">記録する</button>
+  </div>
+  <footer class="footer">© 2025 医療アプリ. All rights reserved.</footer>
+</main>
+
+<!-- 完了モーダル（良い） -->
+<div class="modal-overlay" id="modal-good">
+  <div class="modal">
+    <div class="modal-icon">✅</div>
+    <div class="modal-title">記録完了</div>
+    <div class="modal-sub">本日の入力が完了しました。<br>お疲れ様でした！</div>
+    <div class="modal-msg good">体調は良好です！<br>この調子で健康管理を続けましょう。</div>
+    <button class="btn-home" onclick="goHome()">ホームへ</button>
+  </div>
+</div>
+
+<!-- 完了モーダル（悪い） -->
+<div class="modal-overlay" id="modal-bad">
+  <div class="modal">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title">記録完了</div>
+    <div class="modal-sub">本日の入力が完了しました。</div>
+    <div class="modal-msg bad">体調があまり良くないようです。<br>無理をせず、医療機関への相談をご検討ください。</div>
+    <button class="btn-hospital" onclick="openHospital()">病院の予約アクセスページを開く</button>
+    <button class="btn-home" onclick="goHome()">ホームへ</button>
+  </div>
+</div>
+
+<script>
+  const state = { mood: null, condition: null, outing: null, purpose: null, sleep: null };
+
+  (function setDate() {
+    const d = new Date();
+    document.getElementById('today-date').textContent =
+      d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  })();
+
+  (function setDefaultTime() {
+    const now  = new Date();
+    const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('sleep-time').value = hhmm;
+    document.getElementById('wake-time').value  = hhmm;
+  })();
+
+  function selectGroup(groupId, val) {
+    document.querySelectorAll(`#${groupId} .btn-choice`).forEach(b => {
+      b.classList.toggle('selected', b.dataset.val === val);
+      b.classList.remove('error-field');
+    });
+  }
+  function selectMood(val) {
+    state.mood = val;
+    document.querySelectorAll('#mood-group .btn-mood').forEach(b => {
+      b.classList.toggle('selected', Number(b.dataset.val) === val);
+      b.classList.remove('error-field');
+    });
+    hideErr('err-mood');
+  }
+  function selectCondition(val) { state.condition = val; selectGroup('condition-group', val); hideErr('err-condition'); }
+  function selectOuting(val) {
+    state.outing = val;
+    selectGroup('outing-group', val);
+    hideErr('err-outing');
+    document.getElementById('purpose-block').style.display = val === 'yes' ? 'block' : 'none';
+    if (val === 'no') {
+      state.purpose = null;
+      document.querySelectorAll('#purpose-group .btn-purpose').forEach(b => b.classList.remove('selected'));
+    }
+  }
+  function selectPurpose(val) {
+    state.purpose = val;
+    document.querySelectorAll('#purpose-group .btn-purpose').forEach(b => {
+      b.classList.toggle('selected', b.dataset.val === val);
+      b.classList.remove('error-field');
+    });
+    hideErr('err-purpose');
+  }
+  function selectSleep(val) { state.sleep = val; selectGroup('sleep-group', val); hideErr('err-sleep'); }
+
+  function showErr(id) { document.getElementById(id).classList.add('show'); }
+  function hideErr(id) { document.getElementById(id).classList.remove('show'); }
+  function markErrGroup(groupId) {
+    document.querySelectorAll(`#${groupId} .btn-choice, #${groupId} .btn-mood, #${groupId} .btn-purpose`)
+      .forEach(b => b.classList.add('error-field'));
+  }
+
+  function validate() {
+    let ok = true;
+    const missing = [];
+    if (!state.mood)      { markErrGroup('mood-group');      showErr('err-mood');      missing.push('今日の気分'); ok = false; }
+    if (!state.condition) { markErrGroup('condition-group'); showErr('err-condition'); missing.push('体調');       ok = false; }
+    if (!state.outing)    { markErrGroup('outing-group');    showErr('err-outing');    missing.push('外出');       ok = false; }
+    if (state.outing === 'yes' && !state.purpose) {
+      markErrGroup('purpose-group'); showErr('err-purpose'); missing.push('外出目的'); ok = false;
+    }
+    if (!state.sleep) { markErrGroup('sleep-group'); showErr('err-sleep'); missing.push('睡眠の質'); ok = false; }
+
+    const sleepTime = document.getElementById('sleep-time').value;
+    const wakeTime  = document.getElementById('wake-time').value;
+    if (!sleepTime || !wakeTime) {
+      document.getElementById('sleep-time').classList.add('error-field');
+      document.getElementById('wake-time').classList.add('error-field');
+      document.getElementById('err-time').textContent = '就寝・起床時間を入力してください';
+      showErr('err-time'); missing.push('就寝・起床時間'); ok = false;
+    } else if (wakeTime <= sleepTime) {
+      document.getElementById('wake-time').classList.add('error-field');
+      document.getElementById('err-time').textContent = '起床時間は就寝時間より後に設定してください';
+      showErr('err-time'); missing.push('就寝・起床時間'); ok = false;
+    } else {
+      document.getElementById('sleep-time').classList.remove('error-field');
+      document.getElementById('wake-time').classList.remove('error-field');
+      hideErr('err-time');
+    }
+
+    const banner = document.getElementById('error-banner');
+    if (!ok) {
+      document.getElementById('error-banner-text').textContent =
+        `未入力項目（残り${missing.length}件）：${missing.join('、')}`;
+      banner.classList.add('show');
+      banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      banner.classList.remove('show');
+    }
+    return ok;
+  }
+
+  function handleSubmit() {
+    if (!validate()) return;
+    const record = {
+      date: new Date().toISOString().slice(0,10),
+      mood: state.mood, condition: state.condition,
+      outing: state.outing, purpose: state.purpose,
+      sleep: state.sleep,
+      sleepTime: document.getElementById('sleep-time').value,
+      wakeTime:  document.getElementById('wake-time').value,
+    };
+    console.log('[日次記録] INSERT:', record);
+    if (state.condition === 'bad') {
+      document.getElementById('modal-bad').classList.add('show');
+    } else {
+      document.getElementById('modal-good').classList.add('show');
+    }
+  }
+
+  function openHospital() { window.open('https://www.toyama-med.jp', '_blank', 'noopener'); }
+  function goHome() {
+    document.getElementById('modal-good').classList.remove('show');
+    document.getElementById('modal-bad').classList.remove('show');
+    window.location.href = 'home.html';
+  }
+  function handleLogout() {
+    if (confirm('ログアウトしますか？')) window.location.href = 'login.html';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') handleSubmit();
+  });
+</script>
+</body>
+</html>
+```
+
+これを全コピーして、VS Codeで `daily_input.html` に貼り付けて保存してください。
