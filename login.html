@@ -501,10 +501,13 @@
           const res = await fetch(API_BASE + "/login", {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-API-KEY": API_KEY },
-            body: JSON.stringify({ user_id: loginId.value, password: loginPw.value })
+            body: JSON.stringify({ email: loginId.value, password: loginPw.value })
           });
           if (res.status === 200) {
-            persistLogin(loginId.value);
+            // APIが返す user_id (=email) を保存。返却が無ければ入力値で代替。
+            let savedId = loginId.value;
+            try { const b = await res.json(); if (b && b.user_id) savedId = b.user_id; } catch (_) {}
+            persistLogin(savedId);
             window.location.href = "daily_input.html"; // 画面19 (積山担当)
             return;
           }
