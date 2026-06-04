@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ログイン | 医療アプリ</title>
+  <style>
+    :root{
+      --bg-top:#2f6bff;
+      --bg-bottom:#4aa5ff;
+      --card:#ffffff;
+      --primary:#1f4ed8;
+      --primary-strong:#1d4ed8;
+      --text-dark:#111827;
+      --text-muted:#64748b;
+      --border:#e2e8f0;
+      --danger:#ef4444;
+      --shadow:0 25px 60px rgba(15,23,42,.15);
+      --radius:28px;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:system-ui, sans-serif;background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));min-height:100vh;color:var(--text-dark);display:flex;align-items:center;justify-content:center;padding:20px;}
+    .i-page{width:100%;max-width:420px;}
+    .i-panel{background:rgba(255,255,255,0.98);border-radius:32px;box-shadow:var(--shadow);overflow:hidden;}
+    .i-panel-top{background:linear-gradient(135deg,rgba(255,255,255,0.16),rgba(255,255,255,0));padding:40px 32px 28px;position:relative;}
+    .i-brand{display:flex;align-items:center;gap:14px;}
+    .i-brand-icon{width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,0.45);display:flex;align-items:center;justify-content:center;font-size:28px;color:#ffffff;box-shadow:0 10px 25px rgba(15,23,42,.18);}
+    .i-brand-text{color:#ffffff;}
+    .i-brand-title{font-size:20px;font-weight:700;margin:0;}
+    .i-brand-sub{font-size:14px;opacity:.87;margin:2px 0 0;}
+    .i-content{padding:32px 32px 36px;}
+    .i-heading{font-size:24px;font-weight:800;margin:0 0 10px;}
+    .i-desc{font-size:14px;color:var(--text-muted);line-height:1.75;margin:0 0 28px;}
+    .i-field{margin-bottom:18px;}
+    .i-label{display:block;font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:10px;}
+    .i-input{width:100%;padding:14px 16px;border-radius:16px;border:1px solid var(--border);font-size:15px;color:var(--text-dark);background:#f8fafc;}
+    .i-input:focus{outline:none;border-color:rgba(31,64,222,.45);box-shadow:0 0 0 4px rgba(59,130,246,.12);}
+    .i-helper{font-size:12px;color:var(--text-muted);margin-top:8px;}
+    .i-error{display:none;color:var(--danger);font-size:12px;margin-top:8px;}
+    .i-actions{display:grid;gap:16px;margin-top:16px;}
+    .i-button{width:100%;padding:16px;border:none;border-radius:18px;background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;}
+    .i-button:hover{transform:translateY(-1px);box-shadow:0 18px 35px rgba(31,64,222,.18);}
+    .i-link-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;}
+    .i-link{color:var(--primary);text-decoration:none;font-weight:700;}
+    .i-footer{margin-top:28px;padding-top:22px;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:var(--text-muted);}
+    .i-caption{display:block;margin-bottom:8px;font-weight:700;}
+    .i-register{color:var(--primary);font-weight:700;text-decoration:none;}
+  </style>
+</head>
+<body>
+  <div class="i-page">
+    <section class="i-panel">
+      <div class="i-panel-top">
+        <div class="i-brand">
+          <div class="i-brand-icon">+</div>
+          <div>
+            <p class="i-brand-title">医療アプリ</p>
+            <p class="i-brand-sub">安心・安全な医療サポート</p>
+          </div>
+        </div>
+      </div>
+      <div class="i-content">
+        <h1 class="i-heading">アカウントにログイン</h1>
+        <p class="i-desc">ユーザーID（メール）とパスワードを入力してログインしてください。</p>
+
+        <div class="i-field">
+          <label class="i-label" for="i-userId">ユーザーID（メール）</label>
+          <input id="i-userId" type="email" class="i-input" placeholder="例: user@example.com" autocomplete="username">
+          <div id="i-userIdError" class="i-error">有効なメールアドレスを入力してください</div>
+        </div>
+
+        <div class="i-field">
+          <label class="i-label" for="i-password">パスワード</label>
+          <input id="i-password" type="password" class="i-input" placeholder="8〜16文字、英字と数字を含む" autocomplete="current-password">
+          <div id="i-passwordError" class="i-error">パスワードは英数字混在の8〜16文字で入力してください</div>
+        </div>
+
+        <div class="i-link-row">
+          <a href="#" class="i-link" id="i-forgot">パスワードをお忘れですか？</a>
+          <button class="i-link" id="i-guest" style="background:none;border:none;padding:0;cursor:pointer;">ゲストで続行</button>
+        </div>
+
+        <div class="i-actions">
+          <button class="i-button" id="i-btn-login">ログイン</button>
+        </div>
+
+        <p class="i-footer"><span class="i-caption">アカウントをお持ちでないですか？</span><a href="#" class="i-register" id="i-register">新規会員登録はこちら</a></p>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    (function(){
+      function el(id){ return document.getElementById(id); }
+      function validateEmail(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+      function validatePassword(pw){ return pw.length >= 8 && pw.length <= 16 && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw); }
+
+      var btn = el('i-btn-login');
+      var inputEmail = el('i-userId');
+      var inputPassword = el('i-password');
+      var errorEmail = el('i-userIdError');
+      var errorPassword = el('i-passwordError');
+      var linkForgot = el('i-forgot');
+      var linkRegister = el('i-register');
+      var guest = el('i-guest');
+
+      var existingUser = localStorage.getItem('login_user_id');
+      if (existingUser) {
+        location.href = 'settings.html';
+        return;
+      }
+
+      if (btn) {
+        btn.addEventListener('click', function(){
+          var email = (inputEmail.value || '').trim();
+          var password = (inputPassword.value || '').trim();
+          var valid = true;
+          errorEmail.style.display = 'none';
+          errorPassword.style.display = 'none';
+
+          if (!validateEmail(email)) {
+            errorEmail.style.display = 'block';
+            valid = false;
+          }
+          if (!validatePassword(password)) {
+            errorPassword.style.display = 'block';
+            valid = false;
+          }
+          if (!valid) return;
+
+          saveLoginInfo(email);
+          alert('ログインに成功しました。設定画面へ移動します。');
+          location.href = 'settings.html';
+        });
+      }
+
+      if (linkForgot) {
+        linkForgot.addEventListener('click', function(e){
+          e.preventDefault();
+          alert('パスワードリセット機能は現在準備中です。');
+        });
+      }
+
+      if (linkRegister) {
+        linkRegister.addEventListener('click', function(e){
+          e.preventDefault();
+          alert('新規登録画面は現在準備中です。');
+        });
+      }
+
+      if (guest) {
+        guest.addEventListener('click', function(){
+          saveLoginInfo('guest@example.com');
+          alert('ゲストとして続行します。設定画面へ移動します。');
+          location.href = 'settings.html';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
