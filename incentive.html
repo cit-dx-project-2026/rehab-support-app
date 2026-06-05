@@ -289,7 +289,7 @@
         
         <header class="s-header">
             <h2>特典管理</h2>
-            <button class="s-back-btn">◀ ホームへ</button>
+            <button class="s-back-btn" onclick="window.location.href='home.html'">◀ ホームへ</button>
         </header>
 
         <section class="s-prediction-card">
@@ -381,30 +381,172 @@
     <script src="js/app.js"></script>
     
     <script>
-        // ==========================================
-        // 【デモ用】フロントエンド確認のために認証をパスします
-        // ==========================================
-        document.addEventListener("DOMContentLoaded", function() {
-            // 本番用のセンサーは一時的にコメントアウト（無効化）
-            // const currentUserId = checkAuth(); 
+    // ==========================================
+    // 1. ログインチェック（WBS・統合ルールに完全準拠）
+    // ==========================================
+    const currentUserId = (typeof checkAuth === 'function') ? checkAuth() : localStorage.getItem('login_user_id');
+
+    // ==========================================
+    // 2. 【鈴木統合】共通データ（app.js）およびローカルストレージ連動
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const days = (typeof getLoginDays === 'function') ? getLoginDays() : 8;
+
+        const daysValueEl = document.querySelector('.s-login-days-value');
+        if (daysValueEl) daysValueEl.textContent = days + '日';
+
+        const targetDays = 7; 
+        const diff = targetDays - days;
+        const nextRewardTitleEl = document.querySelector('.s-next-reward-title');
+        const gaugeBarEl = document.querySelector('.s-gauge-bar');
+        const gaugeLabelsEl = document.querySelector('.s-gauge-labels');
+
+        if (diff > 0) {
+            if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎁 次の特典まで あと${diff}日`;
+            if (gaugeBarEl) gaugeBarEl.style.width = (days / targetDays * 100) + '%';
+            if (gaugeLabelsEl) gaugeLabelsEl.innerHTML = `<span>${days}日</span><span>${targetDays}日達成で獲得</span>`;
+        } else {
+            if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎉 条件達成済み！`;
+            if (gaugeBarEl) gaugeBarEl.style.width = '100%';
+            if (gaugeLabelsEl) gaugeLabelsEl.innerHTML = `<span>${days}日</span><span>目標達成！</span>`;
+        }
+
+        const condDescEl = document.querySelector('.s-modal-condition-desc');
+        if (condDescEl) {
+            condDescEl.textContent = `現在の進捗：${days} / 14 日完了（あと${14 - days > 0 ? 14 - days : 0}日）`;
+        }
+    });
+
+    // ==========================================
+    // 3. 【修正・新設】モーダル表示・非表示（開閉）制御ロジック
+    // ==========================================
+    
+    // ① 「利用する」ボタンを押したときの緑の確認モーダル
+    const useButtons = document.querySelectorAll('.s-use-btn');
+    useButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // カード側のクリックイベント（openLockedModalなど）の発火を防ぐ
             
-            console.log("【テストモード】フロントエンド確認のため、認証センサーをバイパスしました。");
+            const card = btn.closest('.s-reward-card');
+            const rewardName = card.querySelector('.s-reward-info h4').textContent;
+            
+            openConfirmModal(rewardName);
         });
+    });
 
-        // ==========================================
-        // モーダル表示制御ロジック
-        // ==========================================
-        
-        // 修正：利用できないチケットをクリックした時のポップアップ（画像2）
-        function openLockedModal(couponName, shopName) {
-            // 今回はデモのため固定データで表示
-            document.getElementById('locked-modal').style.display = 'flex'; // モーダルを表示
-        }
+    // ② 【利用確認モーダルを開く】
+    function openConfirmModal(rewardName) {
+        const existingModal = document.getElementById('confirm-modal');
+        if (existingModal) existingModal.remove();
 
-        // 共通：モーダルを閉じる
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none'; // モーダルを非表示
+        const modalHtml = `
+            <div id="confirm-modal" class="s-modal-overlay s-show" style="display: flex;">
+                <div class="s-modal-content" style="text-align: center; max-width: 340px;">
+                    <div class="s-modal-close-wrapper">
+                        <button class="s-modal-close" onclick="closeModal('confirm-modal')">×</button>
+                    </div>
+                    <div class="s-modal-body">
+                        <div class="s-modal-illustration" style="margin: 10px auto 20px auto; width: 70px; height: 70px; background-color: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#28a745" style="width: 38px; height: 38px;">
+                                <path d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4a2 2 0 0 1 0 4v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 1 0-4Zm-9 5.5h-2v-2h2v2Zm0-4.5h-2V7h2v4Z"/>
+                            </svg>
+                        </div>
+                        <div class="s-modal-title" style="color: #28a745; font-size: 18px; font-weight: bold; margin-bottom: 12px;">特典を利用しますか？</div>
+                        <p class="s-modal-desc" style="font-size: 14px; color: #333; margin-bottom: 20px; line-height: 1.5; text-align: left;">
+                            <strong>【${rewardName}】</strong>を利用します。<br>
+                            <span style="color: #dc3545; font-weight: bold;">※この操作は取り消せません。</span>スタッフの目の前でボタンを押してください。
+                        </p>
+                        <div class="s-modal-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+                            <button class="s-back-btn" onclick="closeModal('confirm-modal')" style="background: #fff; border: 1px solid #ccc; padding: 8px 16px; border-radius: 6px; cursor: pointer;">キャンセル</button>
+                            <button class="s-btn-ok" style="background-color: #28a745; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="handleUseSuccess('${rewardName}')">確定する</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // ③ 【新設：外部設計書32頁準拠】「確定する」を押したときの、スタッフ提示用・利用完了モーダル
+    window.handleUseSuccess = function(rewardName) {
+        closeModal('confirm-modal'); // 確認画面を閉じる
+
+        // 既存の完了モーダルがあれば削除
+        const existingSuccessModal = document.getElementById('success-modal');
+        if (existingSuccessModal) existingSuccessModal.remove();
+
+        // 設計書32ページの仕様に合わせた「利用完了モーダル」を生成
+        const successModalHtml = `
+            <div id="success-modal" class="s-modal-overlay s-show" style="display: flex;">
+                <div class="s-modal-content" style="text-align: center; max-width: 340px; border-top: 8px solid #28a745;">
+                    <div class="s-modal-close-wrapper">
+                        <button class="s-modal-close" onclick="closeModal('success-modal')">×</button>
+                    </div>
+                    <div class="s-modal-body">
+                        <div style="margin: 10px auto 20px auto; width: 70px; height: 70px; background-color: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#28a745" style="width: 40px; height: 40px;">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <div class="s-modal-title" style="color: #28a745; font-size: 20px; font-weight: bold; margin-bottom: 8px;">利用完了</div>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
+                            ただいま特典の利用処理が行われました。
+                        </p>
+                        
+                        <div style="background-color: #f9f9f9; border: 1px dashed #28a745; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                            <span style="font-size: 11px; color: #28a745; font-weight: bold; display: block; margin-bottom: 4px;">▼ 店頭でこの画面を提示してください。</span>
+                            <strong style="font-size: 14px; color: #333; display: block; margin-bottom: 4px;">特典：${rewardName}</strong>
+                            <span style="font-size: 12px; color: #555;">ステータス：<span style="color: #28a745; font-weight: bold;">使用済 (済)</span></span>
+                        </div>
+
+                        <div class="s-modal-actions" style="display: flex; justify-content: center;">
+                            <button class="s-btn-ok" style="background-color: #333; color: #fff; border: none; padding: 10px 32px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold;" onclick="closeModal('success-modal')">閉じる</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', successModalHtml);
+    };
+
+    // ④ 【要望反映：赤字エラー化】ロックされているチケットをクリックした時のポップアップ
+    window.openLockedModal = function(couponName, shopName) {
+        const lockedModal = document.getElementById('locked-modal');
+        if (lockedModal) {
+            // モーダル内の「チケットは利用できません」のタイトル部分をピンポイントで赤字に変更★
+            const titleEl = lockedModal.querySelector('.s-modal-title');
+            if (titleEl) {
+                titleEl.textContent = 'チケットは利用できません';
+                titleEl.style.color = '#dc3545'; // 鮮やかな警告赤
+                titleEl.style.fontWeight = 'bold';
+            }
+            
+            lockedModal.classList.add('s-show');
+            lockedModal.style.display = 'flex';
         }
+    };
+
+    // ⑤ 共通：モーダルを閉じる関数
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('s-show');
+            modal.style.display = 'none';
+            
+            // 動的生成した確認・完了モーダルの場合は要素自体を完全に削除してリセット
+            if (modalId === 'confirm-modal' || modalId === 'success-modal') {
+                modal.remove();
+            }
+        }
+    };
+
+    // モーダルの外側（グレー背景）をクリックした時にも安全に閉じて戻る設定
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('s-modal-overlay')) {
+            const modalId = e.target.id;
+            closeModal(modalId);
+        }
+    });
     </script>
 </body>
 </html>
