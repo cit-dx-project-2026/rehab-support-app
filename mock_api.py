@@ -25,7 +25,7 @@ def check_api_key(headers):
 # ---------------------------------------------------
 # 既存：ログインAPI（岩松君の要望に合わせてキーを email に変更！）
 # ---------------------------------------------------
-@app.route('/api/v1/login', sorted_methods=['POST'])
+@app.route('/api/v1/login', methods=['POST'])  # 修正！
 def login():
     if not check_api_key(request.headers):
         return jsonify({"status": "error", "message": "Invalid API Key"}), 401
@@ -51,7 +51,7 @@ def login():
 # ---------------------------------------------------
 # 新設：1. 新規登録API（最優先要望）
 # ---------------------------------------------------
-@app.route('/api/v1/register', sorted_methods=['POST'])
+@app.route('/api/v1/register', methods=['POST'])  # 修正！
 def register():
     if not check_api_key(request.headers):
         return jsonify({"status": "error", "message": "Invalid API Key"}), 401
@@ -82,7 +82,7 @@ def register():
 # ---------------------------------------------------
 # 新設：1. パスワード再設定API（最優先要望）
 # ---------------------------------------------------
-@app.route('/api/v1/password-reset', sorted_methods=['POST'])
+@app.route('/api/v1/password-reset', methods=['POST'])  # 修正！
 def password_reset():
     if not check_api_key(request.headers):
         return jsonify({"status": "error", "message": "Invalid API Key"}), 401
