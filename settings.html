@@ -29,10 +29,7 @@
   <!-- 41 設定画面表示 -->
   <div id="u-screen-main" class="u-card">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div class="u-header">設定</div>
-        <div class="u-note">アプリの各種設定</div>
-      </div>
+      <div><div id="u-back-to-home" class="u-back">＜ ホーム</div><div class="u-note">設定</div></div>
       <div id="u-display-user" class="u-muted"></div>
     </div>
 
@@ -203,6 +200,7 @@
   });
 
   // 画面遷移
+  if(el('u-back-to-home')) el('u-back-to-home').addEventListener('click', function(){ location.href = 'home.html'; });
   if(el('u-link-account')) el('u-link-account').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
   if(el('u-back-to-main')) el('u-back-to-main').addEventListener('click', function(){ showOnly('u-screen-main') });
   if(el('u-back-to-account')) el('u-back-to-account').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
