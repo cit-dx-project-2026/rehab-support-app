@@ -489,12 +489,7 @@
       document.getElementById('t-err-time').textContent = '就寝・起床時間を入力してください';
       tShowErr('t-err-time');
       missing.push('就寝・起床時間'); ok = false;
-    } else if (wakeTime <= sleepTime) {
-      document.getElementById('t-wake-time').classList.add('t-err-field');
-      document.getElementById('t-err-time').textContent =
-        '起床時間は就寝時間より後に設定してください';
-      tShowErr('t-err-time');
-      missing.push('就寝・起床時間'); ok = false;
+    
     } else {
       document.getElementById('t-sleep-time').classList.remove('t-err-field');
       document.getElementById('t-wake-time').classList.remove('t-err-field');
