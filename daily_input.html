@@ -4,9 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>日次入力 | 医療アプリ</title>
+
+  <!-- 共通CSS（鈴木作成） -->
+  <link rel="stylesheet" href="css/style.css" />
+
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    /* ========================================
+       積山担当：日次入力画面専用スタイル
+       クラス名プレフィックス「t-」統一
+    ======================================== */
+    .t-body {
       font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
       background: #f0f4ff;
       min-height: 100vh;
@@ -14,7 +21,7 @@
       flex-direction: column;
       align-items: center;
     }
-    .header {
+    .t-header {
       width: 100%;
       max-width: 430px;
       background: #fff;
@@ -27,23 +34,23 @@
       top: 0;
       z-index: 10;
     }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .header-icon {
+    .t-header-left { display: flex; align-items: center; gap: 10px; }
+    .t-header-icon {
       width: 36px; height: 36px;
       background: #2563eb;
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
+      color: #fff;
     }
-    .header-icon svg { color: #fff; }
-    .header-title { font-size: 16px; font-weight: 700; color: #1e293b; }
-    .header-date  { font-size: 12px; color: #64748b; margin-top: 1px; }
-    .btn-logout {
+    .t-header-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+    .t-header-date  { font-size: 12px; color: #64748b; margin-top: 1px; }
+    .t-btn-logout {
       background: #f1f5f9; border: none; border-radius: 8px;
       padding: 7px 14px; font-size: 13px; color: #475569;
       cursor: pointer; font-weight: 600;
     }
-    .btn-logout:hover { background: #e2e8f0; }
-    .card {
+    .t-btn-logout:hover { background: #e2e8f0; }
+    .t-card {
       width: 100%; max-width: 430px;
       background: #fff;
       border-radius: 16px;
@@ -51,7 +58,7 @@
       margin: 16px 0 24px;
       box-shadow: 0 2px 12px rgba(0,0,0,.07);
     }
-    .error-banner {
+    .t-error-banner {
       display: none;
       background: #fff7ed;
       border: 1px solid #fb923c;
@@ -60,16 +67,17 @@
       margin-bottom: 18px;
       font-size: 13px;
       color: #c2410c;
+      gap: 8px;
     }
-    .error-banner.show { display: flex; align-items: flex-start; gap: 8px; }
-    .section { margin-bottom: 22px; }
-    .section-label {
+    .t-error-banner.t-show { display: flex; align-items: flex-start; }
+    .t-section { margin-bottom: 22px; }
+    .t-section-label {
       display: flex; align-items: center; gap: 6px;
       font-size: 14px; font-weight: 700; color: #1e293b;
       margin-bottom: 10px;
     }
-    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-choice {
+    .t-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .t-btn-choice {
       flex: 1; min-width: 72px;
       padding: 10px 8px;
       border: 2px solid #e2e8f0;
@@ -79,11 +87,11 @@
       cursor: pointer; text-align: center;
       transition: all .15s;
     }
-    .btn-choice:hover { border-color: #93c5fd; background: #eff6ff; }
-    .btn-choice.selected { border-color: #2563eb; background: #2563eb; color: #fff; }
-    .btn-choice.error-field { border-color: #ef4444 !important; }
-    .mood-group { display: flex; gap: 6px; justify-content: space-between; }
-    .btn-mood {
+    .t-btn-choice:hover { border-color: #93c5fd; background: #eff6ff; }
+    .t-btn-choice.t-selected { border-color: #2563eb; background: #2563eb; color: #fff; }
+    .t-btn-choice.t-err-field { border-color: #ef4444 !important; }
+    .t-mood-group { display: flex; gap: 6px; justify-content: space-between; }
+    .t-btn-mood {
       flex: 1;
       padding: 10px 4px;
       border: 2px solid #e2e8f0;
@@ -94,12 +102,12 @@
       transition: all .15s;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
     }
-    .btn-mood .emoji { font-size: 22px; }
-    .btn-mood .score { font-size: 11px; color: #94a3b8; font-weight: 600; }
-    .btn-mood:hover { border-color: #93c5fd; background: #eff6ff; }
-    .btn-mood.selected { border-color: #2563eb; background: #eff6ff; }
-    .btn-mood.error-field { border-color: #ef4444 !important; }
-    #purpose-block {
+    .t-btn-mood .t-emoji { font-size: 22px; }
+    .t-btn-mood .t-score { font-size: 11px; color: #94a3b8; font-weight: 600; }
+    .t-btn-mood:hover { border-color: #93c5fd; background: #eff6ff; }
+    .t-btn-mood.t-selected { border-color: #2563eb; background: #eff6ff; }
+    .t-btn-mood.t-err-field { border-color: #ef4444 !important; }
+    .t-purpose-block {
       display: none;
       margin-top: 10px;
       padding: 12px;
@@ -107,9 +115,9 @@
       border-radius: 10px;
       border: 1px solid #e2e8f0;
     }
-    #purpose-block .purpose-label { font-size: 13px; color: #64748b; margin-bottom: 8px; }
-    .purpose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .btn-purpose {
+    .t-purpose-label { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+    .t-purpose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .t-btn-purpose {
       padding: 9px 6px;
       border: 2px solid #e2e8f0;
       border-radius: 8px;
@@ -118,83 +126,84 @@
       cursor: pointer; text-align: center;
       transition: all .15s;
     }
-    .btn-purpose:hover { border-color: #93c5fd; background: #eff6ff; }
-    .btn-purpose.selected { border-color: #2563eb; background: #2563eb; color: #fff; }
-    .btn-purpose.error-field { border-color: #ef4444 !important; }
-    .time-row { display: flex; gap: 12px; }
-    .time-block { flex: 1; }
-    .time-block label { font-size: 12px; color: #64748b; margin-bottom: 5px; display: block; }
-    .time-input-wrap { position: relative; }
-    .time-input-wrap svg {
-      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-      color: #94a3b8; pointer-events: none;
-    }
-    .time-input {
-      width: 100%; padding: 10px 12px 10px 34px;
+    .t-btn-purpose:hover { border-color: #93c5fd; background: #eff6ff; }
+    .t-btn-purpose.t-selected { border-color: #2563eb; background: #2563eb; color: #fff; }
+    .t-btn-purpose.t-err-field { border-color: #ef4444 !important; }
+    .t-time-row { display: flex; gap: 12px; }
+    .t-time-block { flex: 1; }
+    .t-time-block label { font-size: 12px; color: #64748b; margin-bottom: 5px; display: block; }
+    .t-time-input {
+      width: 100%; padding: 10px 12px;
       border: 2px solid #e2e8f0; border-radius: 10px;
       font-size: 15px; color: #1e293b; background: #f8fafc;
       outline: none; transition: border-color .15s;
     }
-    .time-input:focus { border-color: #2563eb; background: #fff; }
-    .time-input.error-field { border-color: #ef4444 !important; }
-    .field-error { display: none; font-size: 12px; color: #ef4444; margin-top: 4px; font-weight: 600; }
-    .field-error.show { display: block; }
-    .btn-submit {
+    .t-time-input:focus { border-color: #2563eb; background: #fff; }
+    .t-time-input.t-err-field { border-color: #ef4444 !important; }
+    .t-field-error {
+      display: none; font-size: 12px; color: #ef4444;
+      margin-top: 4px; font-weight: 600;
+    }
+    .t-field-error.t-show { display: block; }
+    .t-btn-submit {
       width: 100%; padding: 15px;
       background: #2563eb; border: none; border-radius: 12px;
       color: #fff; font-size: 16px; font-weight: 700;
       cursor: pointer; margin-top: 8px;
       transition: background .15s;
     }
-    .btn-submit:hover { background: #1d4ed8; }
-    .footer { font-size: 11px; color: #94a3b8; padding: 12px 0 24px; text-align: center; }
-    .modal-overlay {
+    .t-btn-submit:hover  { background: #1d4ed8; }
+    .t-btn-submit:active { background: #1e40af; }
+    .t-footer { font-size: 11px; color: #94a3b8; padding: 12px 0 24px; text-align: center; }
+    .t-modal-overlay {
       display: none;
       position: fixed; inset: 0;
       background: rgba(0,0,0,.45);
       z-index: 100;
       align-items: center; justify-content: center;
     }
-    .modal-overlay.show { display: flex; }
-    .modal {
+    .t-modal-overlay.t-show { display: flex; }
+    .t-modal {
       background: #fff; border-radius: 20px;
       padding: 32px 24px;
       width: 90%; max-width: 380px;
       text-align: center;
       box-shadow: 0 8px 32px rgba(0,0,0,.15);
     }
-    .modal-icon { font-size: 52px; margin-bottom: 12px; }
-    .modal-title { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
-    .modal-sub   { font-size: 14px; color: #64748b; margin-bottom: 16px; }
-    .modal-msg {
+    .t-modal-icon  { font-size: 52px; margin-bottom: 12px; }
+    .t-modal-title { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+    .t-modal-sub   { font-size: 14px; color: #64748b; margin-bottom: 16px; }
+    .t-modal-msg {
       border-radius: 10px; padding: 14px 16px;
       font-size: 14px; font-weight: 600;
       margin-bottom: 20px; line-height: 1.5;
     }
-    .modal-msg.good { background: #f0fdf4; color: #166534; }
-    .modal-msg.bad  { background: #fff7ed; color: #9a3412; }
-    .btn-hospital {
+    .t-modal-msg.t-good { background: #f0fdf4; color: #166534; }
+    .t-modal-msg.t-bad  { background: #fff7ed; color: #9a3412; }
+    .t-btn-hospital {
       display: flex; align-items: center; justify-content: center; gap: 8px;
       width: 100%; padding: 13px;
       background: #f97316; border: none; border-radius: 12px;
       color: #fff; font-size: 14px; font-weight: 700;
       cursor: pointer; margin-bottom: 10px;
     }
-    .btn-hospital:hover { background: #ea580c; }
-    .btn-home {
+    .t-btn-hospital:hover { background: #ea580c; }
+    .t-btn-home {
       width: 100%; padding: 13px;
       background: #2563eb; border: none; border-radius: 12px;
       color: #fff; font-size: 15px; font-weight: 700;
       cursor: pointer;
     }
-    .btn-home:hover { background: #1d4ed8; }
+    .t-btn-home:hover { background: #1d4ed8; }
   </style>
 </head>
-<body>
 
-<header class="header">
-  <div class="header-left">
-    <div class="header-icon">
+<body class="t-body">
+
+<!-- ヘッダー -->
+<header class="t-header">
+  <div class="t-header-left">
+    <div class="t-header-icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round"
@@ -203,253 +212,361 @@
       </svg>
     </div>
     <div>
-      <div class="header-title">日次入力</div>
-      <div class="header-date" id="today-date"></div>
+      <div class="t-header-title">日次入力</div>
+      <div class="t-header-date" id="t-today-date"></div>
     </div>
   </div>
-  <button class="btn-logout" onclick="handleLogout()">ログアウト</button>
+  <button class="t-btn-logout" onclick="tHandleLogout()">ログアウト</button>
 </header>
 
 <main>
-  <div class="card">
-    <div class="error-banner" id="error-banner">
-      <div id="error-banner-text"></div>
+  <div class="t-card">
+
+    <!-- エラーバナー -->
+    <div class="t-error-banner" id="t-error-banner">
+      <span>⚠️</span>
+      <div id="t-error-banner-text"></div>
     </div>
 
-    <!-- 気分 -->
-    <div class="section">
-      <div class="section-label"><span>😊</span> 今日の気分</div>
-      <div class="mood-group" id="mood-group">
-        <button class="btn-mood" data-val="1" onclick="selectMood(1)"><span class="emoji">😢</span><span class="score">1</span></button>
-        <button class="btn-mood" data-val="2" onclick="selectMood(2)"><span class="emoji">😟</span><span class="score">2</span></button>
-        <button class="btn-mood" data-val="3" onclick="selectMood(3)"><span class="emoji">😐</span><span class="score">3</span></button>
-        <button class="btn-mood" data-val="4" onclick="selectMood(4)"><span class="emoji">🙂</span><span class="score">4</span></button>
-        <button class="btn-mood" data-val="5" onclick="selectMood(5)"><span class="emoji">😄</span><span class="score">5</span></button>
+    <!-- 気分（5段階） -->
+    <div class="t-section">
+      <div class="t-section-label">😊 今日の気分</div>
+      <div class="t-mood-group" id="t-mood-group">
+        <button class="t-btn-mood" data-val="1" onclick="tSelectMood(1)">
+          <span class="t-emoji">😢</span><span class="t-score">1</span>
+        </button>
+        <button class="t-btn-mood" data-val="2" onclick="tSelectMood(2)">
+          <span class="t-emoji">😟</span><span class="t-score">2</span>
+        </button>
+        <button class="t-btn-mood" data-val="3" onclick="tSelectMood(3)">
+          <span class="t-emoji">😐</span><span class="t-score">3</span>
+        </button>
+        <button class="t-btn-mood" data-val="4" onclick="tSelectMood(4)">
+          <span class="t-emoji">🙂</span><span class="t-score">4</span>
+        </button>
+        <button class="t-btn-mood" data-val="5" onclick="tSelectMood(5)">
+          <span class="t-emoji">😄</span><span class="t-score">5</span>
+        </button>
       </div>
-      <div class="field-error" id="err-mood">気分を選択してください</div>
+      <div class="t-field-error" id="t-err-mood">気分を選択してください</div>
     </div>
 
     <!-- 体調 -->
-    <div class="section">
-      <div class="section-label">体調</div>
-      <div class="btn-group" id="condition-group">
-        <button class="btn-choice" data-val="good"   onclick="selectCondition('good')">良い</button>
-        <button class="btn-choice" data-val="normal" onclick="selectCondition('normal')">普通</button>
-        <button class="btn-choice" data-val="bad"    onclick="selectCondition('bad')">悪い</button>
+    <div class="t-section">
+      <div class="t-section-label">🩺 体調</div>
+      <div class="t-btn-group" id="t-condition-group">
+        <button class="t-btn-choice" data-val="good"   onclick="tSelectCondition('good')">良い</button>
+        <button class="t-btn-choice" data-val="normal" onclick="tSelectCondition('normal')">普通</button>
+        <button class="t-btn-choice" data-val="bad"    onclick="tSelectCondition('bad')">悪い</button>
       </div>
-      <div class="field-error" id="err-condition">体調を選択してください</div>
+      <div class="t-field-error" id="t-err-condition">体調を選択してください</div>
     </div>
 
     <!-- 外出 -->
-    <div class="section">
-      <div class="section-label"><span>🚶</span> 外出</div>
-      <div class="btn-group" id="outing-group">
-        <button class="btn-choice" data-val="yes" onclick="selectOuting('yes')">した</button>
-        <button class="btn-choice" data-val="no"  onclick="selectOuting('no')">していない</button>
+    <div class="t-section">
+      <div class="t-section-label">🚶 外出</div>
+      <div class="t-btn-group" id="t-outing-group">
+        <button class="t-btn-choice" data-val="yes" onclick="tSelectOuting('yes')">した</button>
+        <button class="t-btn-choice" data-val="no"  onclick="tSelectOuting('no')">していない</button>
       </div>
-      <div class="field-error" id="err-outing">外出を選択してください</div>
-      <div id="purpose-block">
-        <div class="purpose-label">外出目的</div>
-        <div class="purpose-grid" id="purpose-group">
-          <button class="btn-purpose" data-val="hospital" onclick="selectPurpose('hospital')">通院</button>
-          <button class="btn-purpose" data-val="shopping" onclick="selectPurpose('shopping')">買い物</button>
-          <button class="btn-purpose" data-val="walk"     onclick="selectPurpose('walk')">散歩・運動</button>
-          <button class="btn-purpose" data-val="work"     onclick="selectPurpose('work')">仕事</button>
-          <button class="btn-purpose" data-val="social"   onclick="selectPurpose('social')">友人・家族との交流</button>
-          <button class="btn-purpose" data-val="other"    onclick="selectPurpose('other')">その他</button>
+      <div class="t-field-error" id="t-err-outing">外出を選択してください</div>
+
+      <div class="t-purpose-block" id="t-purpose-block">
+        <div class="t-purpose-label">外出目的</div>
+        <div class="t-purpose-grid" id="t-purpose-group">
+          <button class="t-btn-purpose" data-val="hospital" onclick="tSelectPurpose('hospital')">通院</button>
+          <button class="t-btn-purpose" data-val="shopping" onclick="tSelectPurpose('shopping')">買い物</button>
+          <button class="t-btn-purpose" data-val="walk"     onclick="tSelectPurpose('walk')">散歩・運動</button>
+          <button class="t-btn-purpose" data-val="work"     onclick="tSelectPurpose('work')">仕事</button>
+          <button class="t-btn-purpose" data-val="social"   onclick="tSelectPurpose('social')">友人・家族との交流</button>
+          <button class="t-btn-purpose" data-val="other"    onclick="tSelectPurpose('other')">その他</button>
         </div>
-        <div class="field-error" id="err-purpose">外出目的を選択してください</div>
+        <div class="t-field-error" id="t-err-purpose">外出目的を選択してください</div>
       </div>
     </div>
 
     <!-- 睡眠の質 -->
-    <div class="section">
-      <div class="section-label"><span>🌙</span> 睡眠の質</div>
-      <div class="btn-group" id="sleep-group">
-        <button class="btn-choice" data-val="deep"    onclick="selectSleep('deep')">深い</button>
-        <button class="btn-choice" data-val="shallow" onclick="selectSleep('shallow')">浅い</button>
+    <div class="t-section">
+      <div class="t-section-label">🌙 睡眠の質</div>
+      <div class="t-btn-group" id="t-sleep-group">
+        <button class="t-btn-choice" data-val="deep"    onclick="tSelectSleep('deep')">深い</button>
+        <button class="t-btn-choice" data-val="shallow" onclick="tSelectSleep('shallow')">浅い</button>
       </div>
-      <div class="field-error" id="err-sleep">睡眠の質を選択してください</div>
+      <div class="t-field-error" id="t-err-sleep">睡眠の質を選択してください</div>
     </div>
 
     <!-- 就寝・起床時間 -->
-    <div class="section">
-      <div class="section-label"><span>🕐</span> 就寝・起床時間</div>
-      <div class="time-row">
-        <div class="time-block">
-          <label for="sleep-time">就寝時間</label>
-          <div class="time-input-wrap">
-            <input type="time" id="sleep-time" class="time-input" />
-          </div>
+    <div class="t-section">
+      <div class="t-section-label">🕐 就寝・起床時間</div>
+      <div class="t-time-row">
+        <div class="t-time-block">
+          <label for="t-sleep-time">就寝時間</label>
+          <input type="time" id="t-sleep-time" class="t-time-input" />
         </div>
-        <div class="time-block">
-          <label for="wake-time">起床時間</label>
-          <div class="time-input-wrap">
-            <input type="time" id="wake-time" class="time-input" />
-          </div>
+        <div class="t-time-block">
+          <label for="t-wake-time">起床時間</label>
+          <input type="time" id="t-wake-time" class="t-time-input" />
         </div>
       </div>
-      <div class="field-error" id="err-time">起床時間は就寝時間より後に設定してください</div>
+      <div class="t-field-error" id="t-err-time">起床時間は就寝時間より後に設定してください</div>
     </div>
 
-    <button class="btn-submit" onclick="handleSubmit()">記録する</button>
+    <button class="t-btn-submit" onclick="tHandleSubmit()">記録する</button>
+
   </div>
-  <footer class="footer">© 2025 医療アプリ. All rights reserved.</footer>
+  <footer class="t-footer">© 2025 医療アプリ. All rights reserved.</footer>
 </main>
 
-<!-- 完了モーダル（良い） -->
-<div class="modal-overlay" id="modal-good">
-  <div class="modal">
-    <div class="modal-icon">✅</div>
-    <div class="modal-title">記録完了</div>
-    <div class="modal-sub">本日の入力が完了しました。<br>お疲れ様でした！</div>
-    <div class="modal-msg good">体調は良好です！<br>この調子で健康管理を続けましょう。</div>
-    <button class="btn-home" onclick="goHome()">ホームへ</button>
+
+<!-- =============================================
+     モーダル（別ファイルにせずここに記述）
+     通常は display:none → JSで表示切替
+============================================= -->
+
+<!-- 登録完了（良い・普通） -->
+<div class="t-modal-overlay" id="t-modal-good">
+  <div class="t-modal">
+    <div class="t-modal-icon">✅</div>
+    <div class="t-modal-title">記録完了</div>
+    <div class="t-modal-sub">本日の入力が完了しました。<br>お疲れ様でした！</div>
+    <div class="t-modal-msg t-good">体調は良好です！<br>この調子で健康管理を続けましょう。</div>
+    <button class="t-btn-home" onclick="tGoHome()">ホームへ</button>
   </div>
 </div>
 
-<!-- 完了モーダル（悪い） -->
-<div class="modal-overlay" id="modal-bad">
-  <div class="modal">
-    <div class="modal-icon">⚠️</div>
-    <div class="modal-title">記録完了</div>
-    <div class="modal-sub">本日の入力が完了しました。</div>
-    <div class="modal-msg bad">体調があまり良くないようです。<br>無理をせず、医療機関への相談をご検討ください。</div>
-    <button class="btn-hospital" onclick="openHospital()">病院の予約アクセスページを開く</button>
-    <button class="btn-home" onclick="goHome()">ホームへ</button>
+<!-- 登録完了（悪い） -->
+<div class="t-modal-overlay" id="t-modal-bad">
+  <div class="t-modal">
+    <div class="t-modal-icon">⚠️</div>
+    <div class="t-modal-title">記録完了</div>
+    <div class="t-modal-sub">本日の入力が完了しました。</div>
+    <div class="t-modal-msg t-bad">
+      体調があまり良くないようです。<br>
+      無理をせず、医療機関への相談をご検討ください。
+    </div>
+    <!-- 病院アクセスページへ：中間さん担当の home.html（予約アクセス機能）へ遷移 -->
+    <button class="t-btn-hospital" onclick="tOpenHospital()">
+      🏥 病院の予約アクセスページを開く
+    </button>
+    <button class="t-btn-home" onclick="tGoHome()">ホームへ</button>
   </div>
 </div>
+
+
+<!-- 共通JS（鈴木作成） -->
+<script src="js/app.js"></script>
 
 <script>
-  const state = { mood: null, condition: null, outing: null, purpose: null, sleep: null };
+  /* ==========================================
+     ログインチェック（WBS必須）
+     app.js の checkAuth() を呼び出す
+  ========================================== */
+  const currentUserId = checkAuth();
+  if (currentUserId) {
+    console.log("ログイン確認OK:", currentUserId);
+  }
 
-  (function setDate() {
+  /* ==========================================
+     状態管理
+  ========================================== */
+  const tState = {
+    mood:      null,
+    condition: null,
+    outing:    null,
+    purpose:   null,
+    sleep:     null,
+  };
+
+  /* 今日の日付を表示 */
+  (function tSetDate() {
     const d = new Date();
-    document.getElementById('today-date').textContent =
-      d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+    document.getElementById('t-today-date').textContent =
+      d.toLocaleDateString('ja-JP', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
+      });
   })();
 
-  (function setDefaultTime() {
+  /* 現在時刻をデフォルト値にセット */
+  (function tSetDefaultTime() {
     const now  = new Date();
     const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    document.getElementById('sleep-time').value = hhmm;
-    document.getElementById('wake-time').value  = hhmm;
+    document.getElementById('t-sleep-time').value = hhmm;
+    document.getElementById('t-wake-time').value  = hhmm;
   })();
 
-  function selectGroup(groupId, val) {
-    document.querySelectorAll(`#${groupId} .btn-choice`).forEach(b => {
-      b.classList.toggle('selected', b.dataset.val === val);
-      b.classList.remove('error-field');
+  /* ==========================================
+     選択ヘルパー
+  ========================================== */
+  function tSelectGroup(groupId, val, btnClass) {
+    document.querySelectorAll(`#${groupId} .${btnClass}`).forEach(b => {
+      b.classList.toggle('t-selected', b.dataset.val === val);
+      b.classList.remove('t-err-field');
     });
   }
-  function selectMood(val) {
-    state.mood = val;
-    document.querySelectorAll('#mood-group .btn-mood').forEach(b => {
-      b.classList.toggle('selected', Number(b.dataset.val) === val);
-      b.classList.remove('error-field');
+  function tSelectMood(val) {
+    tState.mood = val;
+    document.querySelectorAll('#t-mood-group .t-btn-mood').forEach(b => {
+      b.classList.toggle('t-selected', Number(b.dataset.val) === val);
+      b.classList.remove('t-err-field');
     });
-    hideErr('err-mood');
+    tHideErr('t-err-mood');
   }
-  function selectCondition(val) { state.condition = val; selectGroup('condition-group', val); hideErr('err-condition'); }
-  function selectOuting(val) {
-    state.outing = val;
-    selectGroup('outing-group', val);
-    hideErr('err-outing');
-    document.getElementById('purpose-block').style.display = val === 'yes' ? 'block' : 'none';
+  function tSelectCondition(val) {
+    tState.condition = val;
+    tSelectGroup('t-condition-group', val, 't-btn-choice');
+    tHideErr('t-err-condition');
+  }
+  function tSelectOuting(val) {
+    tState.outing = val;
+    tSelectGroup('t-outing-group', val, 't-btn-choice');
+    tHideErr('t-err-outing');
+    document.getElementById('t-purpose-block').style.display = val === 'yes' ? 'block' : 'none';
     if (val === 'no') {
-      state.purpose = null;
-      document.querySelectorAll('#purpose-group .btn-purpose').forEach(b => b.classList.remove('selected'));
+      tState.purpose = null;
+      document.querySelectorAll('#t-purpose-group .t-btn-purpose')
+        .forEach(b => b.classList.remove('t-selected'));
     }
   }
-  function selectPurpose(val) {
-    state.purpose = val;
-    document.querySelectorAll('#purpose-group .btn-purpose').forEach(b => {
-      b.classList.toggle('selected', b.dataset.val === val);
-      b.classList.remove('error-field');
-    });
-    hideErr('err-purpose');
+  function tSelectPurpose(val) {
+    tState.purpose = val;
+    tSelectGroup('t-purpose-group', val, 't-btn-purpose');
+    tHideErr('t-err-purpose');
   }
-  function selectSleep(val) { state.sleep = val; selectGroup('sleep-group', val); hideErr('err-sleep'); }
-
-  function showErr(id) { document.getElementById(id).classList.add('show'); }
-  function hideErr(id) { document.getElementById(id).classList.remove('show'); }
-  function markErrGroup(groupId) {
-    document.querySelectorAll(`#${groupId} .btn-choice, #${groupId} .btn-mood, #${groupId} .btn-purpose`)
-      .forEach(b => b.classList.add('error-field'));
+  function tSelectSleep(val) {
+    tState.sleep = val;
+    tSelectGroup('t-sleep-group', val, 't-btn-choice');
+    tHideErr('t-err-sleep');
   }
 
-  function validate() {
+  /* ==========================================
+     エラー表示ヘルパー
+  ========================================== */
+  function tShowErr(id) { document.getElementById(id).classList.add('t-show'); }
+  function tHideErr(id) { document.getElementById(id).classList.remove('t-show'); }
+  function tMarkErrGroup(groupId, btnClass) {
+    document.querySelectorAll(`#${groupId} .${btnClass}`)
+      .forEach(b => b.classList.add('t-err-field'));
+  }
+
+  /* ==========================================
+     バリデーション
+  ========================================== */
+  function tValidate() {
     let ok = true;
     const missing = [];
-    if (!state.mood)      { markErrGroup('mood-group');      showErr('err-mood');      missing.push('今日の気分'); ok = false; }
-    if (!state.condition) { markErrGroup('condition-group'); showErr('err-condition'); missing.push('体調');       ok = false; }
-    if (!state.outing)    { markErrGroup('outing-group');    showErr('err-outing');    missing.push('外出');       ok = false; }
-    if (state.outing === 'yes' && !state.purpose) {
-      markErrGroup('purpose-group'); showErr('err-purpose'); missing.push('外出目的'); ok = false;
-    }
-    if (!state.sleep) { markErrGroup('sleep-group'); showErr('err-sleep'); missing.push('睡眠の質'); ok = false; }
 
-    const sleepTime = document.getElementById('sleep-time').value;
-    const wakeTime  = document.getElementById('wake-time').value;
+    if (!tState.mood) {
+      tMarkErrGroup('t-mood-group', 't-btn-mood');
+      tShowErr('t-err-mood');
+      missing.push('今日の気分'); ok = false;
+    }
+    if (!tState.condition) {
+      tMarkErrGroup('t-condition-group', 't-btn-choice');
+      tShowErr('t-err-condition');
+      missing.push('体調'); ok = false;
+    }
+    if (!tState.outing) {
+      tMarkErrGroup('t-outing-group', 't-btn-choice');
+      tShowErr('t-err-outing');
+      missing.push('外出'); ok = false;
+    }
+    if (tState.outing === 'yes' && !tState.purpose) {
+      tMarkErrGroup('t-purpose-group', 't-btn-purpose');
+      tShowErr('t-err-purpose');
+      missing.push('外出目的'); ok = false;
+    }
+    if (!tState.sleep) {
+      tMarkErrGroup('t-sleep-group', 't-btn-choice');
+      tShowErr('t-err-sleep');
+      missing.push('睡眠の質'); ok = false;
+    }
+
+    const sleepTime = document.getElementById('t-sleep-time').value;
+    const wakeTime  = document.getElementById('t-wake-time').value;
     if (!sleepTime || !wakeTime) {
-      document.getElementById('sleep-time').classList.add('error-field');
-      document.getElementById('wake-time').classList.add('error-field');
-      document.getElementById('err-time').textContent = '就寝・起床時間を入力してください';
-      showErr('err-time'); missing.push('就寝・起床時間'); ok = false;
+      document.getElementById('t-sleep-time').classList.add('t-err-field');
+      document.getElementById('t-wake-time').classList.add('t-err-field');
+      document.getElementById('t-err-time').textContent = '就寝・起床時間を入力してください';
+      tShowErr('t-err-time');
+      missing.push('就寝・起床時間'); ok = false;
     } else if (wakeTime <= sleepTime) {
-      document.getElementById('wake-time').classList.add('error-field');
-      document.getElementById('err-time').textContent = '起床時間は就寝時間より後に設定してください';
-      showErr('err-time'); missing.push('就寝・起床時間'); ok = false;
+      document.getElementById('t-wake-time').classList.add('t-err-field');
+      document.getElementById('t-err-time').textContent =
+        '起床時間は就寝時間より後に設定してください';
+      tShowErr('t-err-time');
+      missing.push('就寝・起床時間'); ok = false;
     } else {
-      document.getElementById('sleep-time').classList.remove('error-field');
-      document.getElementById('wake-time').classList.remove('error-field');
-      hideErr('err-time');
+      document.getElementById('t-sleep-time').classList.remove('t-err-field');
+      document.getElementById('t-wake-time').classList.remove('t-err-field');
+      tHideErr('t-err-time');
     }
 
-    const banner = document.getElementById('error-banner');
+    const banner = document.getElementById('t-error-banner');
     if (!ok) {
-      document.getElementById('error-banner-text').textContent =
+      document.getElementById('t-error-banner-text').textContent =
         `未入力項目（残り${missing.length}件）：${missing.join('、')}`;
-      banner.classList.add('show');
+      banner.classList.add('t-show');
       banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      banner.classList.remove('show');
+      banner.classList.remove('t-show');
     }
     return ok;
   }
 
-  function handleSubmit() {
-    if (!validate()) return;
+  /* ==========================================
+     送信処理（モック）
+  ========================================== */
+  function tHandleSubmit() {
+    if (!tValidate()) return;
+
+    // モック：API連携時はここを fetch('/api/daily-record', ...) に差し替える
     const record = {
-      date: new Date().toISOString().slice(0,10),
-      mood: state.mood, condition: state.condition,
-      outing: state.outing, purpose: state.purpose,
-      sleep: state.sleep,
-      sleepTime: document.getElementById('sleep-time').value,
-      wakeTime:  document.getElementById('wake-time').value,
+      userId:    currentUserId,
+      date:      new Date().toISOString().slice(0, 10),
+      mood:      tState.mood,
+      condition: tState.condition,
+      outing:    tState.outing,
+      purpose:   tState.purpose,
+      sleep:     tState.sleep,
+      sleepTime: document.getElementById('t-sleep-time').value,
+      wakeTime:  document.getElementById('t-wake-time').value,
     };
-    console.log('[日次記録] INSERT:', record);
-    if (state.condition === 'bad') {
-      document.getElementById('modal-bad').classList.add('show');
+    console.log('[日次記録 モック INSERT]:', record);
+
+    // 体調判定：「悪い」→ 病院案内モーダル、それ以外 → 完了モーダル
+    if (tState.condition === 'bad') {
+      document.getElementById('t-modal-bad').classList.add('t-show');
     } else {
-      document.getElementById('modal-good').classList.add('show');
+      document.getElementById('t-modal-good').classList.add('t-show');
     }
   }
 
-  function openHospital() { window.open('https://www.toyama-med.jp', '_blank', 'noopener'); }
-  function goHome() {
-    document.getElementById('modal-good').classList.remove('show');
-    document.getElementById('modal-bad').classList.remove('show');
+  /* 病院アクセスページへ遷移（中間さん担当の home.html へ） */
+  function tOpenHospital() {
     window.location.href = 'home.html';
   }
-  function handleLogout() {
-    if (confirm('ログアウトしますか？')) window.location.href = 'login.html';
+
+  /* ホームへ遷移 */
+  function tGoHome() {
+    document.getElementById('t-modal-good').classList.remove('t-show');
+    document.getElementById('t-modal-bad').classList.remove('t-show');
+    window.location.href = 'home.html';
   }
 
+  /* ログアウト（app.js の共通関数） */
+  function tHandleLogout() {
+    if (confirm('ログアウトしますか？')) {
+      logout();
+    }
+  }
+
+  /* Enterキーで記録ボタン発火 */
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') handleSubmit();
+    if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') {
+      tHandleSubmit();
+    }
   });
 </script>
+
 </body>
 </html>
-<!--test-->
