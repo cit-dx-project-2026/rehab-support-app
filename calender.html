@@ -3,299 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ゲーミング・リハビリ カレンダー</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-    
+    <title>体調カレンダー</title>
     <style>
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #e9ecef;
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f4f7f6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
         }
 
-        #m-app-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .m-header-zone {
+        /* 画面上部ヘッダー */
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        /* ⑦ 仕様対応：ホームへボタン */
-        .m-home-btn {
-            border: none;
-            background: #e2e8f0;
-            padding: 6px 12px;
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .btn-home {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 12px;
             cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            text-decoration: none;
             transition: background 0.2s;
         }
-        .m-home-btn:hover { background: #cbd5e1; }
 
-        /* モチベーション可視化エリア */
-        .m-motivation-card {
-            background: #f8fafd;
-            border: 1px solid #e2e8f0;
+        .btn-home:hover {
+            background-color: var(--border-color);
+        }
+
+        /* インセンティブ・ログイン日数エリア */
+        .incentive-card {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
             border-radius: 12px;
             padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        /* ⑥ 仕様対応：連続ログイン日数をクリック可能にするリンクスタイル */
-        .m-login-link-zone {
+            margin-bottom: 25px;
             cursor: pointer;
-            transition: opacity 0.2s;
-            padding: 4px;
-            border-radius: 8px;
-        }
-        .m-login-link-zone:hover {
-            opacity: 0.7;
-            background: #f1f5f9;
-        }
-
-        .m-status-container {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .m-status-box h4 { margin: 0 0 5px 0; font-size: 12px; color: #64748b; }
-        .m-status-box .m-value { font-size: 24px; font-weight: bold; color: #1e293b; }
-        .m-status-box .m-unit { font-size: 14px; color: #64748b; }
-
-        /* 特典への進捗ゲージ */
-        .m-progress-container {
-            margin-top: 12px;
-            background: #e2e8f0;
-            border-radius: 6px;
-            height: 8px;
-            overflow: hidden;
-        }
-        .m-progress-bar {
-            background: linear-gradient(90deg, #3b82f6, #10b981);
-            width: 28%;
-            height: 100%;
-        }
-        .m-progress-hint {
-            font-size: 11px;
-            color: #64748b;
-            text-align: center;
-            margin-top: 5px;
+        .incentive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        /* カレンダー内の絵文字デザイン */
-        .fc-event {
-            background: transparent !important;
-            border: none !important;
-            font-size: 20px !important;
-            text-align: center;
-            cursor: pointer;
+        .info-left {
+            display: flex;
+            flex-direction: column;
         }
 
-        /* 隠し要素ポップアップ（モーダル） */
-        .m-modal {
-            display: none; 
-            position: fixed;
-            z-index: 100;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .m-modal-content {
-            background-color: #fff;
-            margin: 40% auto;
-            padding: 24px;
-            border-radius: 16px;
-            width: 85%;
-            max-width: 360px;
-            position: relative;
-        }
-
-        .m-close-btn {
-            position: absolute; right: 15px; top: 10px;
-            font-size: 24px; cursor: pointer; color: #94a3b8;
-        }
-
-        .m-bonus-prediction {
-            background-color: #f0fdf4;
-            border-left: 4px solid #16a34a;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 6px;
+        .info-label {
             font-size: 13px;
+            color: #555;
+            margin-bottom: 4px;
         }
 
-        /* 入力フォームスタイル */
-        .m-form-group { margin-bottom: 12px; }
-        .m-form-group label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; }
-        .m-form-control { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        .m-btn-primary { width: 100%; background: #3b82f6; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .info-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .info-right {
+            text-align: right;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-right span {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff9800;
+        }
+
+        /* カレンダーエリア */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .calendar-nav-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 10px;
+            color: #666;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .weekday {
+            font-size: 12px;
+            color: #999;
+            font-weight: bold;
+            padding-bottom: 5px;
+        }
+
+        .calendar-day {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .calendar-day:hover {
+            background-color: #e9ecef;
+        }
+
+        .calendar-day.today {
+            background-color: #e3f2fd;
+            border: 1px solid var(--primary-color);
+            font-weight: bold;
+        }
+
+        .calendar-day .emoji {
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
+        /* 詳細モーダル（見切れ・サイズ調整済） */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 20px; /* 画面端の余白を確保して見切れを防止 */
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 360px; /* 横幅が広がりすぎず、見切れない最適なサイズ */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-close-x {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-body-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .modal-body-item .label {
+            color: #666;
+        }
+
+        .modal-body-item .value {
+            font-weight: 500;
+        }
+
+        .btn-modal-close {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .btn-modal-close:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
 
-    <script>
-        if (typeof checkAuth === 'function') { checkAuth(); }
-    </script>
-
-    <div id="m-app-container">
-        <div class="m-header-zone">
-            <h3 style="margin:0;">体調カレンダー</h3>
-            <button id="m-to-home-btn" class="m-home-btn">ホームへ</button>
-        </div>
-
-        <div class="m-motivation-card">
-            <div class="m-status-container">
-                <div id="m-login-trigger" class="m-login-link-zone">
-                    <h4>連続ログイン日数</h4>
-                    <span id="m-login-count" class="m-value" style="color: #3b82f6;">2</span><span class="m-unit">日 🔗</span>
-                </div>
-                <div style="border-left: 1px solid #e2e8f0; height: 40px;"></div>
-                <div class="m-status-box">
-                    <h4>次の特典まで</h4>
-                    <span class="m-unit">あと</span><span class="m-value" style="color: #f97316;">5</span><span class="m-unit">日</span>
-                </div>
-            </div>
-            <div class="m-progress-container">
-                <div class="m-progress-bar"></div>
-            </div>
-            <div class="m-progress-hint">💡 ログイン日数をタップして特典を確認</div>
-        </div>
-
-        <div id="m-calendar"></div>
+<div class="container">
+    <!-- 画面上部ヘッダー -->
+    <div class="header">
+        <h1>体調カレンダー</h1>
+        <!-- 1. home.htmlへの遷移ボタン -->
+        <a href="home.html" class="btn-home">ホームへ</a>
     </div>
 
-    <div id="m-detailModal" class="m-modal">
-        <div class="m-modal-content">
-            <span class="m-close-btn">&times;</span>
-            <h3 id="m-modalDate" style="margin-top:0; font-size:18px; color: #1e293b;">---年--月--日</h3>
-            
-            <div id="m-view-mode" style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <p><strong>気分スコア:</strong> <span id="m-modalMood">--</span></p>
-                <p><strong>体調:</strong> <span id="m-modalCondition">--</span></p>
-                <p><strong>睡眠の質:</strong> <span id="m-modalSleep">--</span></p>
-                <p><strong>就寝・起床:</strong> <span id="m-modalTime">--</span></p>
-                
-                <div class="m-bonus-prediction">
-                    <h4 style="margin: 0 0 5px 0; color: #16a34a; font-size: 14px;">🎁 特典獲得予想</h4>
-                    <p id="m-predictionText" style="margin:0;"></p>
-                </div>
-            </div>
-
-            <div id="m-input-mode" style="display: none;">
-                <div class="m-form-group">
-                    <label for="m-input-mood">今日の気分</label>
-                    <select id="m-input-mood" class="m-form-control">
-                        <option value="5">😆 最高に良い</option>
-                        <option value="4" selected>🙂 良い</option>
-                        <option value="3">😐 普通</option>
-                    </select>
-                </div>
-                <div class="m-form-group">
-                    <label for="m-input-condition">体調ステータス</label>
-                    <select id="m-input-condition" class="m-form-control">
-                        <option value="良い">良い</option>
-                        <option value="普通" selected>普通</option>
-                    </select>
-                </div>
-                <button id="m-save-btn" class="m-btn-primary">この内容でリハビリログを保存</button>
-            </div>
+    <!-- 2. incentive.htmlへの遷移を兼ねた連続ログイン日数カード -->
+    <div class="incentive-card" onclick="location.href='incentive.html'">
+        <div class="info-left">
+            <span class="info-label">連続ログイン日数</span>
+            <span class="info-value"><span id="display-login-days">8</span>日</span>
+        </div>
+        <div class="info-right">
+            次の特典まで<br>あと <span>5</span> 日
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('m-calendar');
-            const modal = document.getElementById('m-detailModal');
-            const closeBtn = document.querySelector('.m-close-btn');
-            let currentSelectedDate = "";
+    <!-- カレンダーエリア -->
+    <div class="calendar-header">
+        <button class="calendar-nav-btn">&lt;</button>
+        <div class="calendar-title" id="calendar-month-title">2026年 50月</div>
+        <button class="calendar-nav-btn">&gt;</button>
+    </div>
 
-            const moodEmojis = { 5: '😆', 4: '🙂', 3: '😐' };
-            const lifeLogDatabase = {
-                "2026-06-01": { mood: 5, condition: "良い", sleep: "深い", time: "23:00 / 06:00", bonus: "カフェクーポン獲得圏内です。" }
-            };
+    <div class="calendar-grid" id="calendar-grid">
+        <!-- 曜日ヘッダー -->
+        <div class="weekday">日</div><div class="weekday">月</div><div class="weekday">火</div>
+        <div class="weekday">水</div><div class="weekday">木</div><div class="weekday">金</div>
+        <div class="weekday">土</div>
+        <!-- 日にちはJavaScriptで動的に生成 -->
+    </div>
+</div>
 
-            const calendarEvents = Object.keys(lifeLogDatabase).map(date => {
-                return { start: date, title: moodEmojis[lifeLogDatabase[date].mood], display: 'block' };
-            });
+<!-- 3. 詳細モーダル（サイズ調整・見切れ防止対応） -->
+<div class="modal-overlay" id="detail-modal">
+    <div class="modal-content">
+        <button class="modal-close-x" id="modal-close-x">✕</button>
+        <div class="modal-header" id="modal-date-title">2026年05月10日</div>
+        
+        <div class="modal-body">
+            <div class="modal-body-item">
+                <span class="label">気分</span>
+                <span class="value" id="modal-mood">4 / 5</span>
+            </div>
+            <div class="modal-body-item">
+                <span class="label">体調</span>
+                <span class="value" id="modal-condition">普通</span>
+            </div>
+            <div class="modal-body-item">
+                <span class="label">外出</span>
+                <span class="value" id="modal-outing">していない</span>
+            </div>
+            <div class="modal-body-item">
+                <span class="label">睡眠の質</span>
+                <span class="value" id="modal-sleep">深い</span>
+            </div>
+            <div class="modal-body-item">
+                <span class="label">就寝・起床時間</span>
+                <span class="value" id="modal-times">就寝 23:30 / 起床 07:00</span>
+            </div>
+        </div>
+        
+        <button class="btn-modal-close" id="modal-close-btn">閉じる</button>
+    </div>
+</div>
 
-            // カレンダー初期化
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'ja',
-                headerToolbar: { left: 'prev', center: 'title', right: 'next' },
-                events: calendarEvents,
-                // ⑧ 仕様対応：日にち、または登録済みイベントを押下した際にモーダル（画面40）へ遷移
-                dateClick: function(info) { handleDateSelection(info.dateStr); },
-                eventClick: function(info) { handleDateSelection(info.event.startStr); }
-            });
-            calendar.render();
+<script>
+    // カレンダー用のダミーライフログデータ
+    const dummyLogData = {
+        8:  { mood: "5", emoji: "😆", condition: "良い", outing: "した（散歩）", sleep: "深い", times: "就寝 23:00 / 起床 06:30" },
+        9:  { mood: "4", emoji: "😊", condition: "良い", outing: "した（通院）", sleep: "普通", times: "就寝 23:30 / 起床 07:00" },
+        10: { mood: "3", emoji: "😐", condition: "普通", outing: "していない", sleep: "浅い", times: "就寝 00:30 / 起床 08:00" },
+        11: { mood: "2", emoji: "😞", condition: "悪い", outing: "していない", sleep: "浅い", times: "就寝 01:00 / 起床 07:30" }
+    };
 
-            function handleDateSelection(dateString) {
-                currentSelectedDate = dateString;
-                console.log("【画面遷移イベント】画面40「詳細モーダル表示」へ遷移します。");
-                showDetailModal(dateString);
+    // カレンダーの簡易描画ロジック（2026年5月を想定）
+    function generateCalendar() {
+        const grid = document.getElementById('calendar-grid');
+        const monthTitle = document.getElementById('calendar-month-title');
+        
+        monthTitle.innerText = "2026年 5月";
+        
+        // 2026年5月1日は金曜日（空セルを5つ挿入）
+        for (let i = 0; i < 5; i++) {
+            const emptyCell = document.createElement('div');
+            grid.appendChild(emptyCell);
+        }
+
+        // 1日〜31日まで描画
+        for (let day = 1; day <= 31; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day';
+            dayCell.innerText = day;
+
+            // 5月10日を仮の本日（選択中風）とする
+            if (day === 10) {
+                dayCell.classList.add('today');
             }
 
-            function showDetailModal(dateString) {
-                const parts = dateString.split('-');
-                document.getElementById('m-modalDate').innerText = `${parts[0]}年${parts[1]}月${parts[2]}日`;
-                const log = lifeLogDatabase[dateString];
-                if (log) {
-                    document.getElementById('m-view-mode').style.display = 'block';
-                    document.getElementById('m-input-mode').style.display = 'none';
-                    document.getElementById('m-modalMood').innerText = `${moodEmojis[log.mood]}`;
-                    document.getElementById('m-modalCondition').innerText = log.condition;
-                    document.getElementById('m-modalSleep').innerText = log.sleep;
-                    document.getElementById('m-modalTime').innerText = log.time;
-                    document.getElementById('m-predictionText').innerText = log.bonus;
-                } else {
-                    document.getElementById('m-view-mode').style.display = 'none';
-                    document.getElementById('m-input-mode').style.display = 'block';
-                }
-                modal.style.display = 'block';
+            // データがある日には絵文字を付与
+            if (dummyLogData[day]) {
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'emoji';
+                emojiSpan.innerText = dummyLogData[day].emoji;
+                dayCell.appendChild(emojiSpan);
             }
 
-            // ⑥ 仕様対応：連続ログイン日数クリック時に画面42「特典予測表示」へ遷移
-            document.getElementById('m-login-trigger').onclick = function() {
-                alert("【画面遷移確認】\n画面42「特典予測表示」へ遷移します。\n(次スプリントにて機能結合予定)");
-                // 実際の環境では以下のようにルーティング処理を記述
-                // window.location.href = "benefit_prediction.html"; 
-            };
+            // クリック時に詳細モーダルを表示
+            dayCell.addEventListener('click', () => openModal(day));
+            grid.appendChild(dayCell);
+        }
+    }
 
-            // ⑦ 仕様対応：ホームへボタンクリック時に画面29「ホーム画面」へ遷移
-            document.getElementById('m-to-home-btn').onclick = function() {
-                alert("【画面遷移確認】\n画面29「ホーム画面」へ戻ります。\n(ベース環境の共通メニューへ遷移)");
-                // window.location.href = "home.html";
-            };
+    // モーダルを開く処理
+    function openModal(day) {
+        const modal = document.getElementById('detail-modal');
+        document.getElementById('modal-date-title').innerText = `2026年05月${day.toString().padStart(2, '0')}日`;
+        
+        // データが存在すれば反映、なければデフォルト
+        if (dummyLogData[day]) {
+            document.getElementById('modal-mood').innerText = dummyLogData[day].mood + " / 5";
+            document.getElementById('modal-condition').innerText = dummyLogData[day].condition;
+            document.getElementById('modal-outing').innerText = dummyLogData[day].outing;
+            document.getElementById('modal-sleep').innerText = dummyLogData[day].sleep;
+            document.getElementById('modal-times').innerText = dummyLogData[day].times;
+        } else {
+            document.getElementById('modal-mood').innerText = "--";
+            document.getElementById('modal-condition').innerText = "記録なし";
+            document.getElementById('modal-outing').innerText = "--";
+            document.getElementById('modal-sleep').innerText = "--";
+            document.getElementById('modal-times').innerText = "--";
+        }
 
-            // 保存およびモーダル閉鎖処理
-            document.getElementById('m-save-btn').onclick = function() {
-                const inputMood = parseInt(document.getElementById('m-input-mood').value);
-                lifeLogDatabase[currentSelectedDate] = {
-                    mood: inputMood, condition: document.getElementById('m-input-condition').value,
-                    sleep: "深い", time: "23:00 / 07:00", bonus: "継続ボーナス発生予報が出ています！"
-                };
-                calendar.addEvent({ start: currentSelectedDate, title: moodEmojis[inputMood], display: 'block' });
-                modal.style.display = 'none';
-            };
+        modal.classList.add('active');
+    }
 
-            closeBtn.onclick = function() { modal.style.display = 'none'; }
-        });
-    </script>
+    // モーダルを閉じる処理
+    function closeModal() {
+        document.getElementById('detail-modal').classList.remove('active');
+    }
+
+    // イベントリスナー設定
+    document.getElementById('modal-close-x').addEventListener('click', closeModal);
+    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+    // Enterキーでも閉じられるように設定
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && document.getElementById('detail-modal').classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    // 初期化
+    window.onload = () => {
+        generateCalendar();
+    };
+</script>
+
 </body>
 </html>
