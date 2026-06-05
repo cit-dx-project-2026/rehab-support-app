@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ゲーミング・リハビリ カレンダー</title>
     
-    <!-- FullCalendar CDN -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
     
     <style>
@@ -16,8 +15,8 @@
             padding: 20px;
         }
 
-        #app-container {
-            max-width: 600px; /* スマホ・タブレット風のサイズ感に調整 */
+        #m-app-container {
+            max-width: 600px;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -25,15 +24,15 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .header-zone {
+        .m-header-zone {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        /* モチベーション可視化：上部ステータスエリア (画面39仕様) */
-        .motivation-card {
+        /* モチベーション可視化エリア */
+        .m-motivation-card {
             background: #f8fafd;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
@@ -41,39 +40,39 @@
             margin-bottom: 20px;
         }
 
-        .status-container {
+        .m-status-container {
             display: flex;
             justify-content: space-around;
             align-items: center;
             text-align: center;
         }
 
-        .status-box h4 { margin: 0 0 5px 0; font-size: 12px; color: #64748b; }
-        .status-box .value { font-size: 24px; font-weight: bold; color: #1e293b; }
-        .status-box .unit { font-size: 14px; color: #64748b; }
+        .m-status-box h4 { margin: 0 0 5px 0; font-size: 12px; color: #64748b; }
+        .m-status-box .m-value { font-size: 24px; font-weight: bold; color: #1e293b; }
+        .m-status-box .m-unit { font-size: 14px; color: #64748b; }
 
         /* 特典への進捗ゲージ */
-        .progress-container {
+        .m-progress-container {
             margin-top: 12px;
             background: #e2e8f0;
             border-radius: 6px;
             height: 8px;
             overflow: hidden;
         }
-        .progress-bar {
+        .m-progress-bar {
             background: linear-gradient(90deg, #3b82f6, #10b981);
-            width: 28%; /* 2日 / 7日 の進捗 */
+            width: 28%;
             height: 100%;
             transition: width 0.3s ease;
         }
-        .progress-hint {
+        .m-progress-hint {
             font-size: 11px;
             color: #64748b;
             text-align: center;
             margin-top: 5px;
         }
 
-        /* カレンダー内の絵文字デザイン調整 */
+        /* カレンダー内の絵文字デザイン */
         .fc-event {
             background: transparent !important;
             border: none !important;
@@ -82,8 +81,8 @@
             cursor: pointer;
         }
 
-        /* 詳細モダール */
-        .modal {
+        /* 隠し要素として実装する詳細ポップアップ（モーダル） */
+        .m-modal {
             display: none; 
             position: fixed;
             z-index: 100;
@@ -91,9 +90,9 @@
             background-color: rgba(0,0,0,0.5);
         }
 
-        .modal-content {
+        .m-modal-content {
             background-color: #fff;
-            margin: 50% auto; /* 中央付近に配置 */
+            margin: 50% auto;
             padding: 20px;
             border-radius: 16px;
             width: 85%;
@@ -101,12 +100,12 @@
             position: relative;
         }
 
-        .close-btn {
+        .m-close-btn {
             position: absolute; right: 15px; top: 10px;
             font-size: 24px; cursor: pointer; color: #94a3b8;
         }
 
-        .bonus-prediction {
+        .m-bonus-prediction {
             background-color: #f0fdf4;
             border-left: 4px solid #16a34a;
             padding: 12px;
@@ -118,142 +117,117 @@
 </head>
 <body>
 
-    <div id="app-container">
-        <div class="header-zone">
+    <script>
+        // ベース環境に用意されている共通関数 checkAuth() を実行
+        if (typeof checkAuth === 'function') {
+            checkAuth();
+        } else {
+            console.warn("ベース環境の checkAuth が見つからないため、モック動作しています。");
+        }
+    </script>
+
+    <div id="m-app-container">
+        <div class="m-header-zone">
             <h3 style="margin:0;">体調カレンダー</h3>
             <button style="border:none; background:#e2e8f0; padding:6px 12px; border-radius:20px; font-size:12px;">ホームへ</button>
         </div>
 
-        <!-- モチベーション・特典予測の可視化エリア (画面39) -->
-        <div class="motivation-card">
-            <div class="status-container">
-                <div class="status-box">
+        <div class="m-motivation-card">
+            <div class="m-status-container">
+                <div class="m-status-box">
                     <h4>連続ログイン日数</h4>
-                    <span class="value" style="color: #3b82f6;">2</span><span class="unit">日</span>
+                    <span class="m-value" style="color: #3b82f6;">2</span><span class="m-unit">日</span>
                 </div>
                 <div style="border-left: 1px solid #e2e8f0; height: 40px;"></div>
-                <div class="status-box">
+                <div class="m-status-box">
                     <h4>次の特典まで</h4>
-                    <span class="unit">あと</span><span class="value" style="color: #f97316;">5</span><span class="unit">日</span>
+                    <span class="m-unit">あと</span><span class="m-value" style="color: #f97316;">5</span><span class="m-unit">日</span>
                 </div>
             </div>
-            <div class="progress-container">
-                <div class="progress-bar"></div>
+            <div class="m-progress-container">
+                <div class="m-progress-bar"></div>
             </div>
-            <div class="progress-hint">💡 ログイン日数をタップして特典を確認</div>
+            <div class="m-progress-hint">💡 ログイン日数をタップして特典を確認</div>
         </div>
 
-        <!-- カレンダー表示エリア -->
-        <div id="calendar"></div>
+        <div id="m-calendar"></div>
     </div>
 
-    <!-- 詳細モーダル (画面40仕様) -->
-    <div id="detailModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3 id="modalDate" style="margin-top:0; font-size:18px;">---年--月--日</h3>
-            <div class="modal-body" style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <p><strong>気分スコア:</strong> <span id="modalMood">--</span></p>
-                <p><strong>体調:</strong> <span id="modalCondition">--</span></p>
-                <p><strong>睡眠の質:</strong> <span id="modalSleep">--</span></p>
-                <p><strong>就寝・起床:</strong> <span id="modalTime">--</span></p>
+    <div id="m-detailModal" class="m-modal">
+        <div class="m-modal-content">
+            <span class="m-close-btn">&times;</span>
+            <h3 id="m-modalDate" style="margin-top:0; font-size:18px;">---年--月--日</h3>
+            <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                <p><strong>気分スコア:</strong> <span id="m-modalMood">--</span></p>
+                <p><strong>体調:</strong> <span id="m-modalCondition">--</span></p>
+                <p><strong>睡眠の質:</strong> <span id="m-modalSleep">--</span></p>
+                <p><strong>就寝・起床:</strong> <span id="m-modalTime">--</span></p>
                 
-                <div class="bonus-prediction">
+                <div class="m-bonus-prediction">
                     <h4 style="margin: 0 0 5px 0; color: #16a34a; font-size: 14px;">🎁 特典獲得予想</h4>
-                    <p id="predictionText" style="margin:0;"></p>
+                    <p id="m-predictionText" style="margin:0;"></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- FullCalendar スクリプト -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            const modal = document.getElementById('detailModal');
-            const closeBtn = document.querySelector('.close-btn');
+            const calendarEl = document.getElementById('m-calendar');
+            const modal = document.getElementById('m-detailModal');
+            const closeBtn = document.querySelector('.m-close-btn');
 
-            // 5段階の気分スコアに対応する絵文字の定義 (画面39仕様)
-            const moodEmojis = {
-                5: '😆', // 最高に良い
-                4: '🙂', // 良い
-                3: '😐', // 普通
-                2: '😟', // 悪い
-                1: '😢'  // 最悪
-            };
+            const moodEmojis = { 5: '😆', 4: '🙂', 3: '😐', 2: '😟', 1: '😢' };
 
-            // 過去の日次入力ライフログ（モックデータ / 画面40の項目に対応）
+            // 内部設計に即したライフログのモックデータ
             const lifeLogDatabase = {
                 "2026-06-01": { mood: 5, condition: "良い", sleep: "深い", time: "就寝 23:00 / 起床 06:00", bonus: "継続モチベーション高！カフェクーポン獲得圏内です。" },
                 "2026-06-02": { mood: 4, condition: "良い", sleep: "深い", time: "就寝 23:30 / 起床 06:30", bonus: "安定しています。明日も記録で目標に一歩前進！" },
                 "2026-06-03": { mood: 3, condition: "普通", sleep: "浅い", time: "就寝 00:15 / 起床 07:00", bonus: "少し睡眠が浅いようです。今夜は早めの就寝がおすすめ。" },
                 "2026-06-04": { mood: 2, condition: "悪い", sleep: "浅い", time: "就寝 01:00 / 起床 07:30", bonus: "無理は禁物。体調に合わせて近隣のクリニックへの相談もご検討ください。" },
-                "2026-06-05": { mood: 4, condition: "普通", sleep: "深い", time: "就寝 23:00 / 起床 06:30", bonus: "持ち直してきました！あと2日で次の特典（ジュース無料券）獲得です！" }
+                "2026-06-05": { mood: 4, condition: "普通", sleep: "深い", time: "就寝 23:00 / 起床 06:30", bonus: "持ち直してきました！あと2日で次の特典獲得です！" }
             };
 
-            // カレンダー表示用のイベントデータに変換
             const calendarEvents = Object.keys(lifeLogDatabase).map(date => {
-                const log = lifeLogDatabase[date];
-                return {
-                    start: date,
-                    title: moodEmojis[log.mood], // タイトルに気分絵文字を設定して可視化
-                    display: 'block'
-                };
+                return { start: date, title: moodEmojis[lifeLogDatabase[date].mood], display: 'block' };
             });
 
-            // カレンダーの初期化
+            // カレンダー初期化
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'ja',
-                headerToolbar: {
-                    left: 'prev',
-                    center: 'title',
-                    right: 'next'
-                },
-                events: calendarEvents, // 可視化したモチベーションデータを流し込む
-                dateClick: function(info) {
-                    showDetailModal(info.dateStr);
-                },
-                eventClick: function(info) {
-                    // 絵文字（イベント）をクリックした場合もモダールを開く
-                    showDetailModal(info.event.startStr);
-                }
+                headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+                events: calendarEvents,
+                dateClick: function(info) { showDetailModal(info.dateStr); },
+                eventClick: function(info) { showDetailModal(info.event.startStr); }
             });
             calendar.render();
 
-            // 詳細モーダル表示 (画面40)
+            // モーダル表示・非表示の切り替え制御
             function showDetailModal(dateString) {
-                document.getElementById('modalDate').innerText = formatJapaneseDate(dateString);
+                const parts = dateString.split('-');
+                document.getElementById('m-m-modalDate').innerText = `${parts[0]}年${parts[1]}月${parts[2]}日`;
                 
                 const log = lifeLogDatabase[dateString];
-                
                 if (log) {
-                    // データがある場合
-                    document.getElementById('modalMood').innerText = `${moodEmojis[log.mood]} (${log.mood}/5)`;
-                    document.getElementById('modalCondition').innerText = log.condition;
-                    document.getElementById('modalSleep').innerText = log.sleep;
-                    document.getElementById('modalTime').innerText = log.time;
-                    document.getElementById('predictionText').innerText = log.bonus;
+                    document.getElementById('m-modalMood').innerText = `${moodEmojis[log.mood]} (${log.mood}/5)`;
+                    document.getElementById('m-modalCondition').innerText = log.condition;
+                    document.getElementById('m-modalSleep').innerText = log.sleep;
+                    document.getElementById('m-modalTime').innerText = log.time;
+                    document.getElementById('m-predictionText').innerText = log.bonus;
                 } else {
-                    // データがない未登録日の場合
-                    document.getElementById('modalMood').innerText = "--";
-                    document.getElementById('modalCondition').innerText = "データ未登録";
-                    document.getElementById('modalSleep').innerText = "--";
-                    document.getElementById('modalTime').innerText = "--";
-                    document.getElementById('predictionText').innerText = "日次入力を完了すると、AIによる特典予測が計算されます。";
+                    document.getElementById('m-modalMood').innerText = "--";
+                    document.getElementById('m-modalCondition').innerText = "データ未登録";
+                    document.getElementById('m-modalSleep').innerText = "--";
+                    document.getElementById('m-modalTime').innerText = "--";
+                    document.getElementById('m-predictionText').innerText = "日次入力を完了すると、AIによる特典予測が計算されます。";
                 }
-                
-                modal.style.display = 'block';
+                modal.style.display = 'block'; // 表示
             }
 
-            function formatJapaneseDate(dateStr) {
-                const parts = dateStr.split('-');
-                return `${parts[0]}年${parts[1]}月${parts[2]}日`;
-            }
-
-            // モーダルを閉じる
+            // 閉じる処理
             closeBtn.onclick = function() { modal.style.display = 'none'; }
             window.onclick = function(event) {
                 if (event.target == modal) { modal.style.display = 'none'; }
