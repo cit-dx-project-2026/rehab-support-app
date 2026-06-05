@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>予約アクセス - 医療アプリ</title>
+  <link rel="stylesheet" href="css/style.css">
   <style>
     /* ===== Reset & Base ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +20,7 @@
     }
 
     /* ===== Mobile Container ===== */
-    .app-container {
+    .n-app-container {
       width: 100%;
       max-width: 400px;
       background: #f0f4f8;
@@ -27,13 +28,13 @@
     }
 
     /* ===== Header ===== */
-    .header {
+    .n-rsv-header {
       display: flex;
       align-items: center;
       padding: 16px 0;
       gap: 12px;
     }
-    .btn-back {
+    .n-btn-back {
       background: none;
       border: none;
       font-size: 20px;
@@ -43,19 +44,19 @@
       display: flex;
       align-items: center;
     }
-    .header-content {
+    .n-rsv-header-content {
       flex: 1;
     }
-    .header-title {
+    .n-rsv-header-title {
       font-size: 17px;
       font-weight: 700;
       color: #1e293b;
     }
-    .header-subtitle {
+    .n-rsv-header-subtitle {
       font-size: 12px;
       color: #64748b;
     }
-    .header-pin-icon {
+    .n-rsv-header-pin-icon {
       width: 36px;
       height: 36px;
       background: #d1fae5;
@@ -67,38 +68,38 @@
     }
 
     /* ===== Legend ===== */
-    .legend {
+    .n-legend {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       padding: 10px 0;
       margin-bottom: 4px;
     }
-    .legend-label {
+    .n-legend-label {
       font-size: 11px;
       font-weight: 600;
       color: #64748b;
       margin-right: 4px;
     }
-    .legend-item {
+    .n-legend-item {
       display: flex;
       align-items: center;
       gap: 4px;
       font-size: 11px;
       color: #475569;
     }
-    .legend-dot {
+    .n-legend-dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
     }
-    .legend-dot.hospital    { background: #ef4444; }
-    .legend-dot.clinic      { background: #3b82f6; }
-    .legend-dot.dental      { background: #22c55e; }
-    .legend-dot.onsen       { background: #a855f7; }
+    .n-legend-dot.n-hospital    { background: #ef4444; }
+    .n-legend-dot.n-clinic      { background: #3b82f6; }
+    .n-legend-dot.n-dental      { background: #22c55e; }
+    .n-legend-dot.n-onsen       { background: #a855f7; }
 
     /* ===== Map Area ===== */
-    .map-container {
+    .n-map-container {
       background: #e2e8f0;
       border-radius: 16px;
       height: 280px;
@@ -106,7 +107,7 @@
       overflow: hidden;
       margin-bottom: 8px;
     }
-    .map-bg {
+    .n-map-bg {
       width: 100%;
       height: 100%;
       background:
@@ -116,13 +117,13 @@
       background-size: 40px 40px, 40px 40px, 100% 100%;
       position: relative;
     }
-    .map-road-h {
+    .n-map-road-h {
       position: absolute;
       height: 3px;
       background: #cbd5e1;
       border-radius: 2px;
     }
-    .map-road-v {
+    .n-map-road-v {
       position: absolute;
       width: 3px;
       background: #cbd5e1;
@@ -130,7 +131,7 @@
     }
 
     /* ===== Map Pins ===== */
-    .map-pin {
+    .n-map-pin {
       position: absolute;
       width: 36px;
       height: 36px;
@@ -145,11 +146,11 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       z-index: 2;
     }
-    .map-pin:hover {
+    .n-map-pin:hover {
       transform: scale(1.15);
       z-index: 3;
     }
-    .map-pin::after {
+    .n-map-pin::after {
       content: '';
       position: absolute;
       bottom: -5px;
@@ -160,16 +161,16 @@
       border-left: 6px solid transparent;
       border-right: 6px solid transparent;
     }
-    .map-pin.hospital    { background: #ef4444; }
-    .map-pin.hospital::after { border-top: 6px solid #ef4444; }
-    .map-pin.clinic      { background: #3b82f6; }
-    .map-pin.clinic::after   { border-top: 6px solid #3b82f6; }
-    .map-pin.dental      { background: #22c55e; }
-    .map-pin.dental::after   { border-top: 6px solid #22c55e; }
-    .map-pin.onsen       { background: #a855f7; }
-    .map-pin.onsen::after    { border-top: 6px solid #a855f7; }
+    .n-map-pin.n-hospital    { background: #ef4444; }
+    .n-map-pin.n-hospital::after { border-top: 6px solid #ef4444; }
+    .n-map-pin.n-clinic      { background: #3b82f6; }
+    .n-map-pin.n-clinic::after   { border-top: 6px solid #3b82f6; }
+    .n-map-pin.n-dental      { background: #22c55e; }
+    .n-map-pin.n-dental::after   { border-top: 6px solid #22c55e; }
+    .n-map-pin.n-onsen       { background: #a855f7; }
+    .n-map-pin.n-onsen::after    { border-top: 6px solid #a855f7; }
 
-    .map-hint {
+    .n-map-hint {
       position: absolute;
       bottom: 12px;
       left: 50%;
@@ -185,13 +186,13 @@
     }
 
     /* ===== Facility List ===== */
-    .facility-section-title {
+    .n-facility-section-title {
       font-size: 15px;
       font-weight: 700;
       color: #1e293b;
       padding: 14px 0 10px;
     }
-    .facility-card {
+    .n-facility-card {
       background: #fff;
       border-radius: 12px;
       padding: 14px 16px;
@@ -204,11 +205,11 @@
       text-decoration: none;
       color: inherit;
     }
-    .facility-card:hover {
+    .n-facility-card:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
-    .facility-icon {
+    .n-facility-icon {
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -219,31 +220,31 @@
       color: #fff;
       flex-shrink: 0;
     }
-    .facility-icon.hospital  { background: #ef4444; }
-    .facility-icon.clinic    { background: #3b82f6; }
-    .facility-icon.dental    { background: #22c55e; }
-    .facility-icon.onsen     { background: #a855f7; }
-    .facility-info {
+    .n-facility-icon.n-hospital  { background: #ef4444; }
+    .n-facility-icon.n-clinic    { background: #3b82f6; }
+    .n-facility-icon.n-dental    { background: #22c55e; }
+    .n-facility-icon.n-onsen     { background: #a855f7; }
+    .n-facility-info {
       flex: 1;
       min-width: 0;
     }
-    .facility-name {
+    .n-facility-name {
       font-size: 14px;
       font-weight: 700;
       color: #1e293b;
     }
-    .facility-type {
+    .n-facility-type {
       font-size: 11px;
       color: #94a3b8;
     }
-    .facility-link {
+    .n-facility-link {
       color: #94a3b8;
       font-size: 18px;
       flex-shrink: 0;
     }
 
     /* ===== Footer ===== */
-    .footer {
+    .n-footer {
       text-align: center;
       padding: 20px 0;
       font-size: 11px;
@@ -251,7 +252,7 @@
     }
 
     /* ===== Tooltip ===== */
-    .pin-tooltip {
+    .n-pin-tooltip {
       display: none;
       position: absolute;
       background: #fff;
@@ -265,103 +266,110 @@
       color: #1e293b;
       pointer-events: none;
     }
-    .pin-tooltip.show {
+    .n-pin-tooltip.n-show {
       display: block;
     }
   </style>
 </head>
 <body>
-  <div class="app-container">
+  <div class="n-app-container">
 
     <!-- ヘッダー -->
-    <div class="header">
-      <button class="btn-back" id="btnBack" aria-label="ホームへ戻る">&lt;</button>
-      <div class="header-content">
-        <div class="header-title">予約アクセス</div>
-        <div class="header-subtitle">近隣の医療施設・温泉施設</div>
+    <div class="n-rsv-header">
+      <button class="n-btn-back" id="btn-back" aria-label="ホームへ戻る">&lt;</button>
+      <div class="n-rsv-header-content">
+        <div class="n-rsv-header-title">予約アクセス</div>
+        <div class="n-rsv-header-subtitle">近隣の医療施設・温泉施設</div>
       </div>
-      <div class="header-pin-icon">📍</div>
+      <div class="n-rsv-header-pin-icon">📍</div>
     </div>
 
     <!-- 凡例 -->
-    <div class="legend">
-      <span class="legend-label">施設種別：</span>
-      <span class="legend-item"><span class="legend-dot hospital"></span>総合病院</span>
-      <span class="legend-item"><span class="legend-dot clinic"></span>クリニック</span>
-      <span class="legend-item"><span class="legend-dot dental"></span>歯科医院</span>
-      <span class="legend-item"><span class="legend-dot onsen"></span>温泉施設</span>
+    <div class="n-legend">
+      <span class="n-legend-label">施設種別：</span>
+      <span class="n-legend-item"><span class="n-legend-dot n-hospital"></span>総合病院</span>
+      <span class="n-legend-item"><span class="n-legend-dot n-clinic"></span>クリニック</span>
+      <span class="n-legend-item"><span class="n-legend-dot n-dental"></span>歯科医院</span>
+      <span class="n-legend-item"><span class="n-legend-dot n-onsen"></span>温泉施設</span>
     </div>
 
     <!-- 地図エリア -->
-    <div class="map-container">
-      <div class="map-bg">
+    <div class="n-map-container">
+      <div class="n-map-bg">
         <!-- 道路風ライン -->
-        <div class="map-road-h" style="top:45%; left:0; width:100%;"></div>
-        <div class="map-road-h" style="top:70%; left:10%; width:80%;"></div>
-        <div class="map-road-v" style="left:30%; top:0; height:100%;"></div>
-        <div class="map-road-v" style="left:65%; top:20%; height:60%;"></div>
+        <div class="n-map-road-h" style="top:45%; left:0; width:100%;"></div>
+        <div class="n-map-road-h" style="top:70%; left:10%; width:80%;"></div>
+        <div class="n-map-road-v" style="left:30%; top:0; height:100%;"></div>
+        <div class="n-map-road-v" style="left:65%; top:20%; height:60%;"></div>
 
         <!-- ピン -->
-        <div class="map-pin hospital" style="top:28%; left:58%;"
+        <div class="n-map-pin n-hospital" style="top:28%; left:58%;"
              data-name="○○総合病院" data-url="https://example.com/hospital"
              title="○○総合病院">🩺</div>
 
-        <div class="map-pin clinic" style="top:52%; left:35%;"
+        <div class="n-map-pin n-clinic" style="top:52%; left:35%;"
              data-name="△△クリニック" data-url="https://example.com/clinic"
              title="△△クリニック">➕</div>
 
-        <div class="map-pin dental" style="top:60%; left:68%;"
+        <div class="n-map-pin n-dental" style="top:60%; left:68%;"
              data-name="□□歯科医院" data-url="https://example.com/dental"
              title="□□歯科医院">🦷</div>
 
-        <div class="map-pin onsen" style="top:38%; left:20%;"
+        <div class="n-map-pin n-onsen" style="top:38%; left:20%;"
              data-name="○○温泉" data-url="https://example.com/onsen"
              title="○○温泉">♨️</div>
 
-        <div class="map-hint">📍 ピンをクリックして詳細を表示</div>
+        <div class="n-map-hint">📍 ピンをクリックして詳細を表示</div>
       </div>
-      <div class="pin-tooltip" id="pinTooltip"></div>
+      <div class="n-pin-tooltip" id="pin-tooltip"></div>
     </div>
 
     <!-- 施設一覧 -->
-    <div class="facility-section-title">施設一覧</div>
-    <div id="facilityList"></div>
+    <div class="n-facility-section-title">施設一覧</div>
+    <div id="display-facility-list"></div>
 
     <!-- フッター -->
-    <div class="footer">
+    <div class="n-footer">
       &copy; 2025 医療アプリ. All rights reserved.
     </div>
   </div>
 
+  <!-- 共通JS（鈴木作成） -->
+  <script src="js/app.js"></script>
   <script>
+    // ===== 画面冒頭：ログインチェック =====
+    if (typeof checkAuth === 'function') {
+      checkAuth();
+    }
+
     // --- 施設データ ---
     var facilities = [
-      { name: '○○総合病院', type: '総合病院', category: 'hospital', icon: '🩺', url: 'https://example.com/hospital' },
-      { name: '△△クリニック', type: 'クリニック', category: 'clinic', icon: '➕', url: 'https://example.com/clinic' },
-      { name: '□□歯科医院', type: '歯科医院', category: 'dental', icon: '🦷', url: 'https://example.com/dental' },
-      { name: '○○温泉', type: '温泉施設', category: 'onsen', icon: '♨️', url: 'https://example.com/onsen' }
+      { name: '○○総合病院', type: '総合病院', category: 'n-hospital', icon: '🩺', url: 'https://example.com/hospital' },
+      { name: '△△クリニック', type: 'クリニック', category: 'n-clinic', icon: '➕', url: 'https://example.com/clinic' },
+      { name: '□□歯科医院', type: '歯科医院', category: 'n-dental', icon: '🦷', url: 'https://example.com/dental' },
+      { name: '○○温泉', type: '温泉施設', category: 'n-onsen', icon: '♨️', url: 'https://example.com/onsen' }
     ];
 
     // --- 施設一覧を描画 ---
-    var facilityListEl = document.getElementById('facilityList');
+    var facilityListEl = document.getElementById('display-facility-list');
     facilities.forEach(function(f) {
       var card = document.createElement('a');
-      card.className = 'facility-card';
+      card.className = 'n-facility-card';
       card.href = f.url;
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
       card.innerHTML =
-        '<div class="facility-icon ' + f.category + '">' + f.icon + '</div>' +
-        '<div class="facility-info">' +
-          '<div class="facility-name">' + f.name + '</div>' +
-          '<div class="facility-type">' + f.type + '</div>' +
+        '<div class="n-facility-icon ' + f.category + '">' + f.icon + '</div>' +
+        '<div class="n-facility-info">' +
+          '<div class="n-facility-name">' + f.name + '</div>' +
+          '<div class="n-facility-type">' + f.type + '</div>' +
         '</div>' +
-        '<div class="facility-link">↗</div>';
+        '<div class="n-facility-link">↗</div>';
       facilityListEl.appendChild(card);
     });
 
     // --- ピンクリックで病院HPへ遷移 ---
-    var pins = document.querySelectorAll('.map-pin');
+    var pins = document.querySelectorAll('.n-map-pin');
     pins.forEach(function(pin) {
       pin.addEventListener('click', function() {
         var url = this.getAttribute('data-url');
@@ -370,21 +378,21 @@
         }
       });
       pin.addEventListener('mouseenter', function(e) {
-        var tooltip = document.getElementById('pinTooltip');
+        var tooltip = document.getElementById('pin-tooltip');
         tooltip.textContent = this.getAttribute('data-name');
-        tooltip.classList.add('show');
+        tooltip.classList.add('n-show');
         var rect = this.getBoundingClientRect();
-        var containerRect = this.closest('.map-container').getBoundingClientRect();
+        var containerRect = this.closest('.n-map-container').getBoundingClientRect();
         tooltip.style.left = (rect.left - containerRect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
         tooltip.style.top = (rect.top - containerRect.top - 36) + 'px';
       });
       pin.addEventListener('mouseleave', function() {
-        document.getElementById('pinTooltip').classList.remove('show');
+        document.getElementById('pin-tooltip').classList.remove('n-show');
       });
     });
 
     // --- 戻るボタン → ホーム画面に遷移 ---
-    document.getElementById('btnBack').addEventListener('click', function() {
+    document.getElementById('btn-back').addEventListener('click', function() {
       window.location.href = 'home.html';
     });
   </script>
