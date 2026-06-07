@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ホーム - 医療アプリ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: #f0f4f8;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 16px;
+    }
+
+    /* ===== Mobile Container ===== */
+    .n-app-container {
+      width: 100%;
+      max-width: 400px;
+      background: #f0f4f8;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* ===== Header ===== */
+    .n-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+    }
+    .n-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .n-header-icon {
+      width: 36px;
+      height: 36px;
+      background: #3b82f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+    }
+    .n-header-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .n-header-date {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .n-btn-logout {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: #64748b;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .n-btn-logout:hover {
+      background: #f8fafc;
+    }
+
+    /* ===== Login Streak Card ===== */
+    .n-streak-card {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      border-radius: 16px;
+      padding: 20px;
+      color: #fff;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .n-streak-card::after {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+    .n-streak-label {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+    .n-streak-days {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin: 4px 0;
+    }
+    .n-streak-days span {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .n-streak-message {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    .n-streak-message::before {
+      content: '✨ ';
+    }
+
+    /* ===== Menu Grid ===== */
+    .n-menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .n-menu-item {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      text-decoration: none;
+      color: inherit;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .n-menu-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .n-menu-item:active {
+      transform: scale(0.97);
+    }
+    .n-menu-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .n-menu-icon.n-calendar { background: #dbeafe; color: #3b82f6; }
+    .n-menu-icon.n-reservation { background: #d1fae5; color: #10b981; }
+    .n-menu-icon.n-incentive { background: #fef3c7; color: #f59e0b; }
+    .n-menu-icon.n-settings { background: #f1f5f9; color: #64748b; }
+    .n-menu-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    /* ===== News Section ===== */
+    .n-news-section {
+      margin-bottom: 24px;
+    }
+    .n-news-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .n-news-header-icon {
+      font-size: 18px;
+    }
+    .n-news-header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .n-news-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      border-left: 3px solid #3b82f6;
+    }
+    .n-news-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .n-news-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      flex: 1;
+    }
+    .n-news-date {
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+    .n-news-body {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* ===== Footer ===== */
+    .n-footer {
+      text-align: center;
+      padding: 20px 0;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="n-app-container">
+
+    <!-- ヘッダー -->
+    <div class="n-header">
+      <div class="n-header-left">
+        <div class="n-header-icon">♥</div>
+        <div>
+          <div class="n-header-title">ホーム</div>
+          <div class="n-header-date" id="display-today-date"></div>
+        </div>
+      </div>
+      <button class="n-btn-logout" id="btn-logout">ログアウト</button>
+    </div>
+
+    <!-- 連続ログイン日数カード -->
+    <div class="n-streak-card">
+      <div class="n-streak-label">連続ログイン日数</div>
+      <div class="n-streak-days" id="display-login-days">-<span>日</span></div>
+      <div class="n-streak-message" id="display-ai-advice">読み込み中...</div>
+    </div>
+
+    <!-- メニューグリッド -->
+    <div class="n-menu-grid">
+      <a href="calender.html" class="n-menu-item">
+        <div class="n-menu-icon n-calendar">📅</div>
+        <div class="n-menu-label">カレンダー</div>
+      </a>
+      <a href="reservation.html" class="n-menu-item">
+        <div class="n-menu-icon n-reservation">🕐</div>
+        <div class="n-menu-label">予約アクセス</div>
+      </a>
+      <a href="incentive.html" class="n-menu-item">
+        <div class="n-menu-icon n-incentive">🎁</div>
+        <div class="n-menu-label">特典管理</div>
+      </a>
+      <a href="settings.html" class="n-menu-item">
+        <div class="n-menu-icon n-settings">⚙️</div>
+        <div class="n-menu-label">設定</div>
+      </a>
+    </div>
+
+    <!-- クリニックからのお知らせ -->
+    <div class="n-news-section">
+      <div class="n-news-header">
+        <span class="n-news-header-icon">🔔</span>
+        <span class="n-news-header-title">クリニックからのお知らせ</span>
+      </div>
+      <div id="display-news-list"></div>
+    </div>
+
+    <!-- フッター -->
+    <div class="n-footer">
+      &copy; 2025 医療アプリ. All rights reserved.
+    </div>
+  </div>
+
+  <!-- 共通JS（鈴木作成） -->
+  <script src="js/app.js"></script>
+  <script>
+    // ===== 画面冒頭：ログインチェック =====
+    // app.js の checkAuth() が存在すれば呼び出す（未ログインなら login.html へリダイレクト）
+    if (typeof checkAuth === 'function') {
+      checkAuth();
+    }
+
+    // ===== app.js の loadHomeData() 連携 =====
+    // app.js 側で loadHomeData() が定義されていれば呼び出し、
+    // display-login-days / display-ai-advice / display-news-list / display-today-date
+    // に対してデータが流し込まれる想定。
+    // loadHomeData() が未定義の場合はフォールバックとしてデモデータを表示する。
+
+    if (typeof loadHomeData === 'function') {
+      // --- app.js 連携モード ---
+      loadHomeData();
+
+      // ★鈴木修正：loadHomeDataによって「8」に上書きされた日数を、ストレージの最新値（9）でさらに上書きし直す！
+      if (typeof getLoginDays === 'function') {
+          document.getElementById('display-login-days').innerHTML = getLoginDays() + '<span>日</span>';
+          document.getElementById('display-ai-advice').textContent = getStreakMessage(getLoginDays());
+      }
+    } else {
+      // --- フォールバック（単体動作用デモデータ） ---
+
+      // ④ 今日の日付を表示
+      (function setTodayDate() {
+        var now = new Date();
+        var y = now.getFullYear();
+        var m = now.getMonth() + 1;
+        var d = now.getDate();
+        document.getElementById('display-today-date').textContent = y + '年' + m + '月' + d + '日';
+      })();
+
+      // ⑤ 連続ログイン日数に応じたAIメッセージ
+      function getStreakMessage(days) {
+        if (days >= 30) return '驚異的な継続力です！あなたの努力が実を結んでいます';
+        if (days >= 14) return '2週間突破！立派な習慣が身についています';
+        if (days >= 7)  return '素晴らしい継続です！';
+        if (days >= 3)  return '良いペースです！この調子で続けましょう';
+        if (days >= 1)  return 'ようこそ！毎日の記録が健康への第一歩です';
+        return '今日から始めましょう！';
+      }
+
+      // デモ用：連続ログイン日数（実際にはDBから取得）
+      // ★鈴木修正：ストレージからリアルタイムに最新日数を取得（なければ初期値8）
+      var consecutiveDays = (typeof getLoginDays === 'function') ? getLoginDays() : 8; 
+      
+      document.getElementById('display-login-days').innerHTML = consecutiveDays + '<span>日</span>';
+      document.getElementById('display-ai-advice').textContent = getStreakMessage(consecutiveDays);
+      // ⑥ お知らせデータ（新着順に3つ表示）
+      var newsData = [
+        {
+          title: '年末年始の診療時間変更のお知らせ',
+          date: '2025/12/20',
+          body: '12月29日〜1月3日は休診となります。'
+        },
+        {
+          title: 'インフルエンザ予防接種のご案内',
+          date: '2025/12/15',
+          body: '予約受付中です。お早めにご予約ください。'
+        },
+        {
+          title: '健康診断キャンペーン実施中',
+          date: '2025/12/10',
+          body: '12月末までお得な料金で受診できます。'
+        }
+      ];
+
+      var newsListEl = document.getElementById('display-news-list');
+      newsData.slice(0, 3).forEach(function(news) {
+        var card = document.createElement('div');
+        card.className = 'n-news-card';
+        card.innerHTML =
+          '<div class="n-news-card-header">' +
+            '<div class="n-news-title">' + news.title + '</div>' +
+            '<div class="n-news-date">' + news.date + '</div>' +
+          '</div>' +
+          '<div class="n-news-body">' + news.body + '</div>';
+        newsListEl.appendChild(card);
+      });
+    }
+
+    // ===== ② ログアウト → 画面1「ログイン画面」に遷移 =====
+    document.getElementById('btn-logout').addEventListener('click', function() {
+      // app.js に logout() があれば使う
+      if (typeof logout === 'function') {
+        logout();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+</html>

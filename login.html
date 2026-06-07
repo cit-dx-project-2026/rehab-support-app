@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ログイン | 医療アプリ</title>
+
+  <!-- =====================================================================
+       認証・アカウント管理 (岩松担当 / ファイル: login.html)
+       ゲーミング・リハビリステーションシステム
+
+       このファイル1枚に3つの画面をまとめている (チーム割当: login.html のみ)。
+       画面は <div> 単位で持ち、JavaScript で表示/非表示を切り替える
+       (チーム注意事項: 新ファイルを作らず div の出し分けで実装する方針)。
+
+         - 画面1 / 5      : ログイン
+         - 画面7 / 10     : 新規会員登録 (+ 7-1 利用規約 / 7-2 プライバシーポリシー モーダル)
+         - 画面11〜18     : パスワード再設定 (ID入力 → 照合 → 新PW入力 の直接方式)
+
+       CSSクラス・IDは全て .i- / i- プレフィックス (チーム注意事項2: 認証担当=i-)。
+
+       通信先 (鈴木 mock_api.py / 確定仕様):
+         POST /api/v1/login          {user_id, password}            成功200
+         POST /api/v1/register       {username, email, password}    成功時 user_id 返却
+         POST /api/v1/password-reset {email, new_password}          成功200
+
+       ※演習用の割り切り: X-API-KEY をこのファイルに直書きしている (ブラウザから可視)。
+         本番ではサーバー側のみが保持する構成にすること。
+       ===================================================================== -->
+
+  <style>
+    :root {
+      --i-color-primary: #2563eb;
+      --i-color-primary-dark: #1d4ed8;
+      --i-color-bg: #eef2fb;
+      --i-color-card: #ffffff;
+      --i-color-text: #1f2937;
+      --i-color-text-muted: #6b7280;
+      --i-color-border: #d1d5db;
+      --i-color-error-bg: #fdecec;
+      --i-color-error-border: #f5c2c2;
+      --i-color-error-text: #d93535;
+      --i-radius: 14px;
+      --i-radius-input: 10px;
+    }
+
+    /* リセットは認証画面のラッパ配下のみに限定し、他担当へ影響させない */
+    .i-screen, .i-screen * { box-sizing: border-box; }
+
+    .i-screen {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      color: var(--i-color-text);
+      background-color: var(--i-color-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 16px;
+      margin: 0;
+    }
+
+    .i-inner { width: 100%; max-width: 380px; }
+
+    /* ブランドヘッダー */
+    .i-brand { text-align: center; margin-bottom: 28px; }
+
+    .i-brand__logo {
+      width: 56px; height: 56px; margin: 0 auto 12px;
+      background-color: var(--i-color-primary);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .i-brand__title { font-size: 20px; font-weight: 600; color: var(--i-color-primary); margin: 0; }
+    .i-brand__subtitle { font-size: 14px; color: var(--i-color-primary); margin: 4px 0 0; }
+
+    /* カード */
+    .i-card {
+      background-color: var(--i-color-card);
+      border-radius: var(--i-radius);
+      padding: 28px 24px;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+    }
+
+    .i-card__heading { font-size: 18px; font-weight: 600; text-align: center; margin: 0 0 6px; }
+    .i-card__subheading { font-size: 13px; color: var(--i-color-text-muted); text-align: center; margin: 0 0 20px; }
+
+    /* エラーバナー (赤字) */
+    .i-error-banner {
+      display: flex; align-items: center; gap: 10px;
+      background-color: var(--i-color-error-bg);
+      border: 1px solid var(--i-color-error-border);
+      border-radius: var(--i-radius-input);
+      padding: 12px 14px; margin-bottom: 18px;
+      color: var(--i-color-error-text);
+      font-size: 13px; line-height: 1.5;
+    }
+    .i-error-banner[hidden] { display: none; }
+    .i-error-banner__icon {
+      flex-shrink: 0; width: 18px; height: 18px;
+      border: 1.5px solid var(--i-color-error-text); border-radius: 50%;
+      font-weight: 700; font-size: 12px; line-height: 15px; text-align: center;
+    }
+
+    /* 入力フィールド */
+    .i-field { margin-bottom: 16px; }
+    .i-field__label { display: block; font-size: 13px; color: var(--i-color-text-muted); margin-bottom: 6px; }
+    .i-field__icon { margin-right: 2px; }
+    .i-field__input {
+      width: 100%; padding: 12px 14px; font-size: 15px;
+      border: 1px solid var(--i-color-border);
+      border-radius: var(--i-radius-input);
+      background-color: #f9fafb;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .i-field__input:focus {
+      outline: none; border-color: var(--i-color-primary);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .i-field__input.i-is-invalid { border-color: var(--i-color-error-text); background-color: #fff7f7; }
+    .i-field__hint { font-size: 12px; color: var(--i-color-text-muted); margin-top: 5px; }
+
+    /* 姓・名の横並び */
+    .i-field-row { display: flex; gap: 12px; }
+    .i-field-row .i-field { flex: 1; }
+
+    /* チェックボックス (規約同意) */
+    .i-agree {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; color: var(--i-color-text); margin: 6px 0 18px;
+    }
+    .i-agree input { margin-top: 3px; flex-shrink: 0; }
+    .i-agree a { color: var(--i-color-primary); }
+
+    /* リンク類 */
+    .i-card__forgot { text-align: right; margin-bottom: 18px; }
+    .i-card__back { margin-bottom: 16px; }
+    .i-link-muted { font-size: 13px; font-weight: 600; color: var(--i-color-primary); text-decoration: none; cursor: pointer; }
+    .i-link-muted:hover { text-decoration: underline; }
+    .i-link-back { font-size: 13px; color: var(--i-color-primary); text-decoration: none; cursor: pointer; }
+    .i-link-back:hover { text-decoration: underline; }
+
+    /* ボタン */
+    .i-btn-primary {
+      width: 100%; padding: 13px; font-size: 15px; font-weight: 600;
+      color: #ffffff; background-color: var(--i-color-primary);
+      border: none; border-radius: var(--i-radius-input); cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    .i-btn-primary:hover { background-color: var(--i-color-primary-dark); }
+    .i-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .i-btn-secondary {
+      width: 100%; padding: 13px; font-size: 15px; font-weight: 600;
+      color: var(--i-color-primary); background-color: #ffffff;
+      border: 1px solid var(--i-color-border); border-radius: var(--i-radius-input);
+      cursor: pointer; transition: background-color 0.15s;
+    }
+    .i-btn-secondary:hover { background-color: #f3f4f6; }
+
+    .i-btn-pair { display: flex; gap: 12px; }
+    .i-btn-pair > * { flex: 1; }
+
+    /* 画面下部の導線 */
+    .i-card__switch {
+      text-align: center; margin-top: 22px; padding-top: 18px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .i-card__switch-text { font-size: 13px; color: var(--i-color-text-muted); margin: 0 0 6px; }
+
+    /* フッター */
+    .i-footer { text-align: center; font-size: 12px; color: var(--i-color-text-muted); margin-top: 24px; }
+
+    /* モーダル (利用規約 / プライバシーポリシー) */
+    .i-modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; z-index: 1000;
+    }
+    .i-modal[hidden] { display: none; }
+    .i-modal__box {
+      background: #fff; border-radius: var(--i-radius);
+      max-width: 360px; width: 100%; max-height: 80vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .i-modal__title { font-size: 16px; font-weight: 600; padding: 18px 20px 10px; margin: 0; }
+    .i-modal__body { padding: 0 20px; overflow-y: auto; font-size: 13px; line-height: 1.7; color: var(--i-color-text); }
+    .i-modal__body h4 { color: var(--i-color-primary); font-size: 14px; margin: 16px 0 6px; }
+    .i-modal__footer { padding: 14px 20px 18px; }
+  </style>
+</head>
+
+<body>
+  <main class="i-screen">
+    <div class="i-inner">
+      <!-- ブランドヘッダー (全画面共通) -->
+      <header class="i-brand">
+        <div class="i-brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
+            <path d="M12 21s-7.5-4.6-10-9.2C.6 9 1.6 5.5 4.8 5.1c2-.3 3.4.9 4.2 2 .8-1.1 2.2-2.3 4.2-2 3.2.4 4.2 3.9 2.8 6.7C19.5 16.4 12 21 12 21z"/>
+          </svg>
+        </div>
+        <h1 class="i-brand__title">医療アプリ</h1>
+        <p class="i-brand__subtitle">安心・安全な医療サポート</p>
+      </header>
+
+      <!-- ============================================================
+           画面1 / 5 : ログイン
+           ============================================================ -->
+      <section id="i-screen-login" class="i-card" aria-labelledby="i-loginHeading">
+        <h2 id="i-loginHeading" class="i-card__heading">ログイン</h2>
+        <p class="i-card__subheading" style="display:none"></p>
+
+        <div id="i-login-error" class="i-error-banner" role="alert" hidden>
+          <span class="i-error-banner__icon" aria-hidden="true">!</span>
+          <span id="i-login-error-msg">メールアドレスまたはパスワードが正しくありません。</span>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-login-userId">
+            <span class="i-field__icon" aria-hidden="true">&#9993;</span> メールアドレス
+          </label>
+          <input type="email" id="i-login-userId" class="i-field__input"
+                 placeholder="user@example.com" autocomplete="email" maxlength="254">
+          <p class="i-field__hint">登録したメールアドレス</p>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-login-password">
+            <span class="i-field__icon" aria-hidden="true">&#128274;</span> パスワード
+          </label>
+          <input type="password" id="i-login-password" class="i-field__input"
+                 autocomplete="current-password" maxlength="16">
+          <p class="i-field__hint">8桁から16桁</p>
+        </div>
+
+        <div class="i-card__forgot">
+          <a class="i-link-muted" id="i-to-reset">パスワードをお忘れですか？</a>
+        </div>
+
+        <button type="button" id="i-login-submit" class="i-btn-primary">ログイン</button>
+
+        <div class="i-card__switch">
+          <p class="i-card__switch-text">アカウントをお持ちでないですか？</p>
+          <a class="i-link-muted" id="i-to-register">新規会員登録はこちら</a>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           画面7 / 10 : 新規会員登録
+           項目: 姓・名・メールアドレス・パスワード・パスワード(確認) (鈴木確定仕様)
+           ============================================================ -->
+      <section id="i-screen-register" class="i-card" aria-labelledby="i-regHeading" hidden>
+        <h2 id="i-regHeading" class="i-card__heading">新規会員登録</h2>
+
+        <div id="i-reg-error" class="i-error-banner" role="alert" hidden>
+          <span class="i-error-banner__icon" aria-hidden="true">!</span>
+          <span id="i-reg-error-msg"></span>
+        </div>
+
+        <div class="i-field-row">
+          <div class="i-field">
+            <label class="i-field__label" for="i-reg-lastName">姓</label>
+            <input type="text" id="i-reg-lastName" class="i-field__input" placeholder="山田" maxlength="32">
+          </div>
+          <div class="i-field">
+            <label class="i-field__label" for="i-reg-firstName">名</label>
+            <input type="text" id="i-reg-firstName" class="i-field__input" placeholder="太郎" maxlength="32">
+          </div>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-reg-email">
+            <span class="i-field__icon" aria-hidden="true">&#9993;</span> メールアドレス
+          </label>
+          <input type="email" id="i-reg-email" class="i-field__input"
+                 placeholder="user@example.com" autocomplete="email" maxlength="254">
+          <p class="i-field__hint">ログイン等に使用します</p>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-reg-password">
+            <span class="i-field__icon" aria-hidden="true">&#128274;</span> パスワード
+          </label>
+          <input type="password" id="i-reg-password" class="i-field__input" maxlength="16">
+          <p class="i-field__hint">英数字8桁から16桁</p>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-reg-password2">
+            <span class="i-field__icon" aria-hidden="true">&#128274;</span> パスワード（確認）
+          </label>
+          <input type="password" id="i-reg-password2" class="i-field__input" maxlength="16">
+        </div>
+
+        <label class="i-agree">
+          <input type="checkbox" id="i-reg-agree">
+          <span>
+            <a id="i-open-terms">利用規約</a>および<a id="i-open-privacy">プライバシーポリシー</a>に同意します
+          </span>
+        </label>
+
+        <button type="button" id="i-reg-submit" class="i-btn-primary">新規会員登録</button>
+
+        <div class="i-card__switch">
+          <p class="i-card__switch-text">すでにアカウントをお持ちですか？</p>
+          <a class="i-link-muted" id="i-reg-to-login">ログインはこちら</a>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           画面11 / 14 : パスワード再設定 (1) メールアドレス入力
+           ============================================================ -->
+      <section id="i-screen-reset-id" class="i-card" aria-labelledby="i-resetIdHeading" hidden>
+        <div class="i-card__back">
+          <a class="i-link-back" id="i-resetId-back">&larr; ログイン画面に戻る</a>
+        </div>
+        <h2 id="i-resetIdHeading" class="i-card__heading">パスワード再設定</h2>
+        <p class="i-card__subheading">登録したメールアドレスを入力してください</p>
+
+        <div id="i-resetId-error" class="i-error-banner" role="alert" hidden>
+          <span class="i-error-banner__icon" aria-hidden="true">!</span>
+          <span id="i-resetId-error-msg">このメールアドレスは登録されていません。</span>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-reset-email">
+            <span class="i-field__icon" aria-hidden="true">&#9993;</span> メールアドレス
+          </label>
+          <input type="email" id="i-reset-email" class="i-field__input"
+                 placeholder="user@example.com" autocomplete="email" maxlength="254">
+        </div>
+
+        <button type="button" id="i-resetId-submit" class="i-btn-primary">次へ</button>
+      </section>
+
+      <!-- ============================================================
+           画面15 / 18 : パスワード再設定 (2) 新しいパスワード入力
+           ============================================================ -->
+      <section id="i-screen-reset-pw" class="i-card" aria-labelledby="i-resetPwHeading" hidden>
+        <div class="i-card__back">
+          <a class="i-link-back" id="i-resetPw-back">&larr; ログイン画面に戻る</a>
+        </div>
+        <h2 id="i-resetPwHeading" class="i-card__heading">パスワード再設定</h2>
+        <p class="i-card__subheading">新しいパスワードを設定してください</p>
+
+        <div id="i-resetPw-error" class="i-error-banner" role="alert" hidden>
+          <span class="i-error-banner__icon" aria-hidden="true">!</span>
+          <span id="i-resetPw-error-msg"></span>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label">メールアドレス</label>
+          <input type="text" id="i-resetPw-emailView" class="i-field__input"
+                 readonly style="background:#eef2f7; color:var(--i-color-text-muted);">
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-resetPw-new">
+            <span class="i-field__icon" aria-hidden="true">&#128274;</span> 新しいパスワード
+          </label>
+          <input type="password" id="i-resetPw-new" class="i-field__input" maxlength="16">
+          <p class="i-field__hint">英字と数字を含む8桁から16桁</p>
+        </div>
+
+        <div class="i-field">
+          <label class="i-field__label" for="i-resetPw-new2">
+            <span class="i-field__icon" aria-hidden="true">&#128274;</span> パスワード（確認）
+          </label>
+          <input type="password" id="i-resetPw-new2" class="i-field__input" maxlength="16">
+        </div>
+
+        <div class="i-btn-pair">
+          <button type="button" id="i-resetPw-back2" class="i-btn-secondary">戻る</button>
+          <button type="button" id="i-resetPw-submit" class="i-btn-primary">パスワードを再設定</button>
+        </div>
+      </section>
+
+      <footer class="i-footer">&copy; 2026 医療アプリ. All rights reserved.</footer>
+    </div>
+  </main>
+
+  <!-- 画面7-1 : 利用規約 モーダル -->
+  <div id="i-modal-terms" class="i-modal" role="dialog" aria-modal="true" hidden>
+    <div class="i-modal__box">
+      <h3 class="i-modal__title">利用規約</h3>
+      <div class="i-modal__body">
+        <p>この利用規約（以下「本規約」といいます）は、医療アプリ（以下「当社」といいます）が提供する医療サポートサービス（以下「本サービス」といいます）の利用条件を定めるものです。本サービスをご利用になる方（以下「利用者」といいます）は、本規約に同意したものとみなされます。</p>
+
+        <h4>第1条（適用）</h4>
+        <p>本規約は、本サービスの提供条件及び本サービスの利用に関する当社と利用者との間の権利義務関係を定めることを目的とし、利用者と当社との間の本サービスの利用に関わる一切の関係に適用されます。当社が当社ウェブサイト上で掲載する本サービス利用に関するルールは、本規約の一部を構成するものとします。本規約の内容と、前項のルールその他の本規約外における本サービスの説明等とが異なる場合は、本規約の規定が優先して適用されるものとします。</p>
+
+        <h4>第2条（利用登録）</h4>
+        <p>本サービスにおいては、登録希望者が本規約に同意の上、当社の定める方法によって利用登録を申請し、当社がこれを承認することによって、利用登録が完了するものとします。当社は、利用登録の申請者に虚偽の届出、本規約違反の経歴、その他当社が相当でないと判断する事由があると判断した場合、利用登録の申請を承認しないことがあり、その理由について開示義務を負わないものとします。</p>
+
+        <h4>第3条（メールアドレスおよびパスワードの管理）</h4>
+        <p>利用者は、自己の責任において、本サービスのメールアドレスおよびパスワードを適切に管理するものとします。利用者は、いかなる場合にも、メールアドレスおよびパスワードを第三者に譲渡または貸与し、もしくは第三者と共用することはできません。メールアドレスとパスワードの組み合わせが登録情報と一致してログインされた場合には、そのメールアドレスを登録している利用者自身による利用とみなします。</p>
+
+        <h4>第4条（禁止事項）</h4>
+        <p>利用者は、本サービスの利用にあたり、法令または公序良俗に違反する行為、犯罪行為に関連する行為、当社・他の利用者・第三者のサーバーまたはネットワークの機能を破壊もしくは妨害する行為、当社のサービス運営を妨害するおそれのある行為、他の利用者の個人情報を収集または蓄積する行為、不正アクセスまたはその試み、他の利用者への成りすまし、反社会的勢力への利益供与、その他当社が不適切と判断する行為をしてはなりません。</p>
+
+        <h4>第5条（本サービスの提供の停止等）</h4>
+        <p>当社は、システムの保守点検・更新を行う場合、地震・落雷・火災・停電・天災などの不可抗力により提供が困難となった場合、コンピュータまたは通信回線等が事故により停止した場合、その他当社が提供困難と判断した場合、利用者に事前に通知することなく本サービスの全部または一部の提供を停止または中断できるものとします。当社は、これにより利用者または第三者が被った不利益または損害について、一切の責任を負いません。</p>
+
+        <h4>第6条（利用制限および登録抹消）</h4>
+        <p>当社は、利用者が本規約のいずれかの条項に違反した場合、登録事項に虚偽があることが判明した場合、その他当社が利用を適当でないと判断した場合には、事前の通知なく、本サービスの全部もしくは一部の利用を制限し、または登録を抹消できるものとします。当社は、本条に基づく行為により利用者に生じた損害について、一切の責任を負いません。</p>
+
+        <h4>第7条（免責事項）</h4>
+        <p>当社は、本サービスに事実上または法律上の瑕疵がないことを明示的にも黙示的にも保証しておりません。当社は、本サービスによって利用者に生じたあらゆる損害について、一切の責任を負いません。ただし、本サービスに関する当社と利用者との間の契約が消費者契約法に定める消費者契約となる場合は、この免責規定は適用されません。本サービスは医療行為ではなく、健康管理をサポートするためのツールです。体調に異常を感じた場合は、必ず医療機関を受診してください。</p>
+
+        <h4>第8条（個人情報の取扱い）</h4>
+        <p>当社は、本サービスの利用によって取得する個人情報については、当社「プライバシーポリシー」に従い適切に取り扱うものとします。</p>
+
+        <h4>第9条（通知または連絡）</h4>
+        <p>利用者と当社との間の通知または連絡は、当社の定める方法によって行うものとします。当社は、利用者から所定の方式に従った変更届け出がない限り、現在登録されている連絡先を有効なものとみなして通知または連絡を行い、これらは発信時に利用者へ到達したものとみなします。</p>
+
+        <h4>第10条（権利義務の譲渡の禁止）</h4>
+        <p>利用者は、当社の書面による事前の承諾なく、利用契約上の地位または本規約に基づく権利もしくは義務を第三者に譲渡し、または担保に供することはできません。</p>
+
+        <h4>第11条（準拠法・裁判管轄）</h4>
+        <p>本規約の解釈にあたっては、日本法を準拠法とします。本サービスに関して紛争が生じた場合には、当社の本店所在地を管轄する裁判所を専属的合意管轄とします。</p>
+      </div>
+      <div class="i-modal__footer">
+        <button type="button" id="i-terms-close" class="i-btn-primary">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 画面7-2 : プライバシーポリシー モーダル -->
+  <div id="i-modal-privacy" class="i-modal" role="dialog" aria-modal="true" hidden>
+    <div class="i-modal__box">
+      <h3 class="i-modal__title">プライバシーポリシー</h3>
+      <div class="i-modal__body">
+        <p>医療アプリ（以下「当社」といいます）は、本サービスにおける、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます）を定めます。</p>
+
+        <h4>第1条（個人情報）</h4>
+        <p>「個人情報」とは、個人情報保護法にいう「個人情報」を指すものとし、生存する個人に関する情報であって、当該情報に含まれる氏名、生年月日、住所、電話番号、連絡先その他の記述等により特定の個人を識別できる情報及び容貌、指紋、声紋にかかるデータ、及び健康保険証の保険者番号などの当該情報単体から特定の個人を識別できる情報（個人識別情報）を指します。</p>
+
+        <h4>第2条（個人情報の収集方法）</h4>
+        <p>当社は、ユーザーが利用登録をする際に氏名、メールアドレスなどの個人情報をお尋ねすることがあります。また、本サービスでは、日々の気分・体調に関する情報、外出履歴、睡眠時間・睡眠の質に関する情報、その他健康管理に関する情報といった健康情報を収集します。</p>
+
+        <h4>第3条（個人情報を収集・利用する目的）</h4>
+        <p>当社が個人情報を収集・利用する目的は、本サービスの提供・運営、お問い合わせへの回答（本人確認を含む）、新機能・更新情報・キャンペーン等の案内メールの送付、メンテナンスや重要なお知らせの連絡、規約違反者や不正利用者の特定とご利用のお断り、ユーザーご自身による登録情報の閲覧・変更・削除、健康状態の分析および改善提案、ならびにこれらに付随する目的です。</p>
+
+        <h4>第4条（利用目的の変更）</h4>
+        <p>当社は、利用目的が変更前と関連性を有すると合理的に認められる場合に限り、個人情報の利用目的を変更するものとします。変更を行った場合には、変更後の目的について、当社所定の方法によりユーザーに通知し、または本ウェブサイト上に公表するものとします。</p>
+
+        <h4>第5条（個人情報の第三者提供）</h4>
+        <p>当社は、個人情報保護法その他の法令で認められる場合を除き、あらかじめユーザーの同意を得ることなく第三者に個人情報を提供することはありません。ただし、人の生命・身体・財産の保護に必要な場合や、利用目的の達成に必要な範囲で取扱いを委託する場合、事業承継に伴う場合などはこの限りではありません。</p>
+
+        <h4>第6条（個人情報の開示）</h4>
+        <p>当社は、本人から個人情報の開示を求められたときは、遅滞なくこれを開示します。ただし、本人または第三者の権利利益を害するおそれがある場合、業務の適正な実施に著しい支障を及ぼすおそれがある場合、その他法令に違反する場合は、その全部または一部を開示しないことがあり、その場合は遅滞なく通知します。</p>
+
+        <h4>第7条（個人情報の訂正および削除）</h4>
+        <p>ユーザーは、当社の保有する自己の個人情報が誤った情報である場合には、当社が定める手続きにより、訂正・追加または削除を請求することができます。当社は、請求に応じる必要があると判断した場合には遅滞なく対応し、対応の有無を遅滞なくユーザーに通知します。</p>
+
+        <h4>第8条（個人情報の利用停止等）</h4>
+        <p>当社は、本人から、利用目的の範囲を超えた取扱いや不正取得を理由に利用の停止または消去を求められた場合には、遅滞なく必要な調査を行い、応じる必要があると判断した場合には遅滞なく利用停止等を行い、その結果を遅滞なくユーザーに通知します。</p>
+
+        <h4>第9条（プライバシーポリシーの変更）</h4>
+        <p>本ポリシーの内容は、法令その他別段の定めのある事項を除き、ユーザーに通知することなく変更することができるものとします。当社が別途定める場合を除き、変更後のプライバシーポリシーは本ウェブサイトに掲載したときから効力を生じるものとします。</p>
+
+        <h4>第10条（お問い合わせ窓口）</h4>
+        <p>本ポリシーに関するお問い合わせは、医療アプリ サポートセンター（メールアドレス: privacy@medical-app.example.com）までお願いいたします。</p>
+
+        <p style="color: var(--i-color-text-muted); margin-top: 16px;">2025年1月26日 制定</p>
+      </div>
+      <div class="i-modal__footer">
+        <button type="button" id="i-privacy-close" class="i-btn-primary">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 共通スクリプト (鈴木作成)。saveLoginInfo(userId) がこの中で定義されている。
+       ログイン処理より先に読み込む。 -->
+  <script src="js/app.js"></script>
+
+  <script>
+    /* ===================================================================
+       認証・アカウント管理ロジック (ログイン / 新規登録 / PW再設定)
+       =================================================================== */
+    (function () {
+      "use strict";
+
+      // --- モックAPI設定 (鈴木 mock_api.py 確定仕様) ---
+      const API_BASE = "http://127.0.0.1:5000/api/v1";
+      const API_KEY = "rehab-support-app-2026-key";
+
+      // --- 入力ルール ---
+      const ID_PATTERN = /^[A-Za-z0-9]{8,16}$/;          // ログインID
+      const PW_LEN = /^.{8,16}$/;                          // 桁数 8〜16
+      const PW_ALNUM = /^(?=.*[A-Za-z])(?=.*[0-9]).+$/;    // 英字と数字の両方を含む
+      const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;  // 簡易メール形式
+
+      /* -----------------------------------------------------------------
+         画面切り替え: 指定IDの <section> だけ表示し、他を隠す。
+         ----------------------------------------------------------------- */
+      const SCREENS = ["i-screen-login", "i-screen-register", "i-screen-reset-id", "i-screen-reset-pw"];
+      function showScreen(id) {
+        SCREENS.forEach(function (sid) {
+          document.getElementById(sid).hidden = (sid !== id);
+        });
+        // 画面切り替え時に各エラー表示をリセット
+        ["i-login-error", "i-reg-error", "i-resetId-error", "i-resetPw-error"].forEach(function (eid) {
+          document.getElementById(eid).hidden = true;
+        });
+        window.scrollTo(0, 0);
+      }
+
+      /* エラーバナー表示/解除のヘルパ */
+      function showError(bannerId, msgId, message) {
+        document.getElementById(msgId).textContent = message;
+        document.getElementById(bannerId).hidden = false;
+      }
+      function hideError(bannerId) {
+        document.getElementById(bannerId).hidden = true;
+      }
+
+      /* ===============================================================
+         ログイン (画面1 / 5)
+         =============================================================== */
+      const loginId = document.getElementById("i-login-userId");
+      const loginPw = document.getElementById("i-login-password");
+      const loginBtn = document.getElementById("i-login-submit");
+
+      function persistLogin(userId) {
+        if (typeof window.saveLoginInfo === "function") {
+          window.saveLoginInfo(userId);
+        } else {
+          console.warn("saveLoginInfo が未定義です。js/app.js を確認してください。");
+          localStorage.setItem("login_user_id", userId);
+        }
+      }
+
+      async function submitLogin() {
+        hideError("i-login-error");
+        loginId.classList.remove("i-is-invalid");
+        loginPw.classList.remove("i-is-invalid");
+
+        let ok = true;
+        if (!EMAIL_PATTERN.test(loginId.value)) { loginId.classList.add("i-is-invalid"); ok = false; }
+        if (!ID_PATTERN.test(loginPw.value)) { loginPw.classList.add("i-is-invalid"); ok = false; }
+        if (!ok) {
+          showError("i-login-error", "i-login-error-msg",
+            "メールアドレスの形式、またはパスワード（英数字8〜16桁）を確認してください。");
+          return;
+        }
+
+        loginBtn.disabled = true; loginBtn.textContent = "認証中...";
+        try {
+          const res = await fetch(API_BASE + "/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-API-KEY": API_KEY },
+            body: JSON.stringify({ email: loginId.value, password: loginPw.value })
+          });
+          if (res.status === 200) {
+            // APIが返す user_id (=email) を保存。返却が無ければ入力値で代替。
+            let savedId = loginId.value;
+            try { const b = await res.json(); if (b && b.user_id) savedId = b.user_id; } catch (_) {}
+            persistLogin(savedId);
+            window.location.href = "daily_input.html"; // 画面19 (積山担当)
+            return;
+          }
+          let msg = "メールアドレスまたはパスワードが正しくありません。";
+          try { const b = await res.json(); if (b && b.message) msg = b.message; } catch (_) {}
+          showError("i-login-error", "i-login-error-msg", msg);
+        } catch (_) {
+          showError("i-login-error", "i-login-error-msg",
+            "サーバーに接続できません。mock_api.py が起動しているか確認してください。");
+        } finally {
+          loginBtn.disabled = false; loginBtn.textContent = "ログイン";
+        }
+      }
+
+      loginBtn.addEventListener("click", submitLogin);
+      [loginId, loginPw].forEach(function (el) {
+        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submitLogin(); } });
+        el.addEventListener("input", function () { hideError("i-login-error"); });
+      });
+
+      /* ===============================================================
+         新規会員登録 (画面7 / 10)
+         =============================================================== */
+      const regLast = document.getElementById("i-reg-lastName");
+      const regFirst = document.getElementById("i-reg-firstName");
+      const regEmail = document.getElementById("i-reg-email");
+      const regPw = document.getElementById("i-reg-password");
+      const regPw2 = document.getElementById("i-reg-password2");
+      const regAgree = document.getElementById("i-reg-agree");
+      const regBtn = document.getElementById("i-reg-submit");
+
+      function markInvalid(el, cond) {
+        if (cond) { el.classList.add("i-is-invalid"); return true; }
+        el.classList.remove("i-is-invalid"); return false;
+      }
+
+      async function submitRegister() {
+        hideError("i-reg-error");
+        let bad = false;
+
+        // 未入力チェック (画面10: 未入力項目を赤く)
+        bad = markInvalid(regLast, regLast.value.trim() === "") || bad;
+        bad = markInvalid(regFirst, regFirst.value.trim() === "") || bad;
+        bad = markInvalid(regEmail, !EMAIL_PATTERN.test(regEmail.value)) || bad;
+        bad = markInvalid(regPw, !(PW_LEN.test(regPw.value) && PW_ALNUM.test(regPw.value))) || bad;
+        bad = markInvalid(regPw2, regPw2.value === "") || bad;
+
+        if (bad) {
+          showError("i-reg-error", "i-reg-error-msg", "入力内容を確認してください（未入力・形式エラーがあります）。");
+          return;
+        }
+        if (regPw.value !== regPw2.value) {
+          markInvalid(regPw2, true);
+          showError("i-reg-error", "i-reg-error-msg", "パスワードが一致しません。");
+          return;
+        }
+        if (!regAgree.checked) {
+          showError("i-reg-error", "i-reg-error-msg", "利用規約およびプライバシーポリシーへの同意が必要です。");
+          return;
+        }
+
+        regBtn.disabled = true; regBtn.textContent = "登録中...";
+        try {
+          const res = await fetch(API_BASE + "/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-API-KEY": API_KEY },
+            body: JSON.stringify({
+              username: (regLast.value + " " + regFirst.value).trim(),
+              email: regEmail.value,
+              password: regPw.value
+            })
+          });
+          if (res.status === 200 || res.status === 201) {
+            // 登録完了 → ログイン画面へ戻す (画面遷移図: 成功→ログイン)
+            alert("アカウントの作成に成功しました。ログインしてください。");
+            showScreen("i-screen-login");
+            return;
+          }
+          let msg = "登録に失敗しました。入力内容を確認してください。";
+          try { const b = await res.json(); if (b && b.message) msg = b.message; } catch (_) {}
+          showError("i-reg-error", "i-reg-error-msg", msg);
+        } catch (_) {
+          showError("i-reg-error", "i-reg-error-msg",
+            "サーバーに接続できません。mock_api.py が起動しているか確認してください。");
+        } finally {
+          regBtn.disabled = false; regBtn.textContent = "新規会員登録";
+        }
+      }
+
+      regBtn.addEventListener("click", submitRegister);
+      [regLast, regFirst, regEmail, regPw, regPw2].forEach(function (el) {
+        el.addEventListener("input", function () { el.classList.remove("i-is-invalid"); hideError("i-reg-error"); });
+        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submitRegister(); } });
+      });
+
+      /* ===============================================================
+         パスワード再設定 (画面11→15 直接方式 / 鈴木修正仕様)
+         =============================================================== */
+      const resetEmail = document.getElementById("i-reset-email");
+      const resetIdBtn = document.getElementById("i-resetId-submit");
+      const resetEmailView = document.getElementById("i-resetPw-emailView");
+      const resetNew = document.getElementById("i-resetPw-new");
+      const resetNew2 = document.getElementById("i-resetPw-new2");
+      const resetPwBtn = document.getElementById("i-resetPw-submit");
+
+      // 確定したメールアドレスを2画面目へ引き継ぐための保持変数
+      let confirmedEmail = "";
+
+      // (1) メールアドレス入力 → 形式チェックして新PW入力画面へ。
+      //     ※実際のID存在確認は password-reset 送信時にAPIが判定する。
+      function submitResetId() {
+        hideError("i-resetId-error");
+        resetEmail.classList.remove("i-is-invalid");
+        if (!EMAIL_PATTERN.test(resetEmail.value)) {
+          resetEmail.classList.add("i-is-invalid");
+          showError("i-resetId-error", "i-resetId-error-msg", "メールアドレスの形式が正しくありません。");
+          return;
+        }
+        confirmedEmail = resetEmail.value;
+        resetEmailView.value = confirmedEmail;
+        resetNew.value = ""; resetNew2.value = "";
+        showScreen("i-screen-reset-pw");
+      }
+
+      // (2) 新PW入力 → 整合性チェック (画面18) → API送信。
+      async function submitResetPw() {
+        hideError("i-resetPw-error");
+        resetNew.classList.remove("i-is-invalid");
+        resetNew2.classList.remove("i-is-invalid");
+
+        // 桁数チェック
+        if (!PW_LEN.test(resetNew.value)) {
+          resetNew.classList.add("i-is-invalid");
+          showError("i-resetPw-error", "i-resetPw-error-msg", "パスワードは8桁から16桁で入力してください。");
+          return;
+        }
+        // 英字・数字の両方を含むか
+        if (!PW_ALNUM.test(resetNew.value)) {
+          resetNew.classList.add("i-is-invalid");
+          showError("i-resetPw-error", "i-resetPw-error-msg", "パスワードは英字と数字の両方を含む必要があります。");
+          return;
+        }
+        // 確認用との一致
+        if (resetNew.value !== resetNew2.value) {
+          resetNew2.classList.add("i-is-invalid");
+          showError("i-resetPw-error", "i-resetPw-error-msg", "パスワードが一致しません。");
+          return;
+        }
+
+        resetPwBtn.disabled = true; resetPwBtn.textContent = "再設定中...";
+        try {
+          const res = await fetch(API_BASE + "/password-reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-API-KEY": API_KEY },
+            body: JSON.stringify({ email: confirmedEmail, new_password: resetNew.value })
+          });
+          if (res.status === 200) {
+            alert("パスワードの再設定が完了しました。ログインしてください。");
+            showScreen("i-screen-login");
+            return;
+          }
+          // ID(メール)未存在などはここで失敗 → ID入力画面に戻して通知 (画面14相当)
+          let msg = "再設定に失敗しました。";
+          try { const b = await res.json(); if (b && b.message) msg = b.message; } catch (_) {}
+          if (res.status === 404) {
+            showScreen("i-screen-reset-id");
+            showError("i-resetId-error", "i-resetId-error-msg", "このメールアドレスは登録されていません。");
+          } else {
+            showError("i-resetPw-error", "i-resetPw-error-msg", msg);
+          }
+        } catch (_) {
+          showError("i-resetPw-error", "i-resetPw-error-msg",
+            "サーバーに接続できません。mock_api.py が起動しているか確認してください。");
+        } finally {
+          resetPwBtn.disabled = false; resetPwBtn.textContent = "パスワードを再設定";
+        }
+      }
+
+      resetIdBtn.addEventListener("click", submitResetId);
+      resetEmail.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submitResetId(); } });
+      resetEmail.addEventListener("input", function () { hideError("i-resetId-error"); resetEmail.classList.remove("i-is-invalid"); });
+
+      resetPwBtn.addEventListener("click", submitResetPw);
+      [resetNew, resetNew2].forEach(function (el) {
+        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submitResetPw(); } });
+        el.addEventListener("input", function () { hideError("i-resetPw-error"); el.classList.remove("i-is-invalid"); });
+      });
+
+      /* ===============================================================
+         画面間の遷移リンク
+         =============================================================== */
+      document.getElementById("i-to-register").addEventListener("click", function () { showScreen("i-screen-register"); });
+      document.getElementById("i-to-reset").addEventListener("click", function () { resetEmail.value = ""; showScreen("i-screen-reset-id"); });
+      document.getElementById("i-reg-to-login").addEventListener("click", function () { showScreen("i-screen-login"); });
+      document.getElementById("i-resetId-back").addEventListener("click", function () { showScreen("i-screen-login"); });
+      document.getElementById("i-resetPw-back").addEventListener("click", function () { showScreen("i-screen-login"); });
+      document.getElementById("i-resetPw-back2").addEventListener("click", function () { showScreen("i-screen-reset-id"); });
+
+      /* ===============================================================
+         モーダル (利用規約 7-1 / プライバシーポリシー 7-2)
+         =============================================================== */
+      function openModal(id) { document.getElementById(id).hidden = false; }
+      function closeModal(id) { document.getElementById(id).hidden = true; }
+      document.getElementById("i-open-terms").addEventListener("click", function () { openModal("i-modal-terms"); });
+      document.getElementById("i-open-privacy").addEventListener("click", function () { openModal("i-modal-privacy"); });
+      document.getElementById("i-terms-close").addEventListener("click", function () { closeModal("i-modal-terms"); });
+      document.getElementById("i-privacy-close").addEventListener("click", function () { closeModal("i-modal-privacy"); });
+      // 背景クリックで閉じる
+      document.getElementById("i-modal-terms").addEventListener("click", function (e) { if (e.target === this) closeModal("i-modal-terms"); });
+      document.getElementById("i-modal-privacy").addEventListener("click", function (e) { if (e.target === this) closeModal("i-modal-privacy"); });
+
+      // 初期表示はログイン画面
+      showScreen("i-screen-login");
+    })();
+  </script>
+</body>
+</html>

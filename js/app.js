@@ -58,3 +58,21 @@ function loadHomeData() {
         document.getElementById('display-next-reward').innerText = coreSystemData.nextReward;
     }
 }
+// ==========================================
+// 4. 【鈴木追加】ログイン日数カウントアップ＆取得ロジック
+// ==========================================
+function incrementLoginDays() {
+    // ローカルストレージから現在の日数を取得（なければ初期値の8日をベースにする）
+    let currentDays = parseInt(localStorage.getItem('login_days')) || 8;
+    
+    // 日数を1日プラスする
+    currentDays += 1;
+    
+    // ストレージのデータを最新の状態に更新
+    localStorage.setItem('login_days', currentDays);
+}
+
+function getLoginDays() {
+    // 保存されている最新の日数を返す（まだなければ初期値8）
+    return parseInt(localStorage.getItem('login_days')) || 8;
+}

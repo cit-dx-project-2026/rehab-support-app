@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>設定</title>
+  <style>
+    :root{--bg:#f4f6fb;--card:#fff;--accent:#2563eb;--danger:#ef4444;--muted:#6b7280}
+    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Meiryo,sans-serif;background:var(--bg)}
+    .u-wrap{max-width:920px;margin:28px auto;padding:20px}
+    .u-card{background:var(--card);border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,.06);padding:18px}
+    .u-header{font-weight:700;font-size:18px;color:#111;margin-bottom:8px;cursor:pointer}
+    .u-muted{color:var(--muted);font-size:13px}
+    .u-menu{display:block;padding:14px;border-radius:10px;margin:10px 0;background:#fbfdff;border:1px solid #eef2ff;cursor:pointer}
+    .u-btn{display:inline-block;padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+    .u-btn.u-secondary{background:#eef2ff;color:var(--accent);border:1px solid #dbeafe}
+    .u-input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;box-sizing:border-box}
+    .u-readonly{background:#f3f4f6;padding:10px;border-radius:8px;border:1px solid #e6e9ef}
+    .u-err{color:var(--danger);font-size:13px;margin-top:8px;display:none}
+    .u-layout-row{display:flex;gap:18px}
+    .u-col{flex:1}
+    .u-small-col{flex:0 0 360px}
+    .u-note{font-size:12px;color:var(--muted);margin-top:8px}
+    .u-back{cursor:pointer;color:#111}
+  </style>
+</head>
+<body>
+<div class="u-wrap">
+  <!-- 41 設定画面表示 -->
+  <div id="u-screen-main" class="u-card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div id="u-back-to-home" class="u-back">＜ ホーム</div><div class="u-note">設定</div></div>
+      <div id="u-display-user" class="u-muted"></div>
+    </div>
+
+    <div id="u-link-account" class="u-menu" role="button" tabindex="0">アカウント設定<div class="u-note">ユーザーID・パスワードの管理</div></div>
+    <div id="u-link-logout" class="u-menu" role="button" tabindex="0"><span style="color:var(--danger);font-weight:700">→ ログアウト</span><div class="u-note">ログアウトすると再ログインが必要です</div></div>
+  </div>
+
+  <!-- 42 アカウント設定変更画面 -->
+  <div id="u-screen-account-menu" class="u-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div id="u-back-to-main" class="u-back">＜ 設定</div><div class="u-note">アカウント設定</div></div>
+      <div id="u-display-user-2" class="u-muted"></div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:18px">
+      <div style="flex:0 0 360px">
+        <div class="u-header" style="font-size:16px">ユーザーID変更</div>
+        <div class="u-note">現在のユーザーIDを確認し、新しいID(メール)へ更新します</div>
+        <div style="margin-top:12px">
+          <div class="u-note">現在のユーザーID</div>
+          <div id="u-current-user" class="u-readonly">—</div>
+        </div>
+        <div style="margin-top:12px">
+          <button id="u-go-change-id" class="u-btn">ユーザーIDを変更する</button>
+        </div>
+      </div>
+
+      <div style="flex:1">
+        <div class="u-header" style="font-size:16px">パスワード変更</div>
+        <div class="u-note">現在のパスワードを確認後、新しいパスワードに変更します</div>
+        <div style="margin-top:12px">
+          <button id="u-go-change-pw" class="u-btn">パスワードを変更する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ユーザーID変更画面 -->
+  <div id="u-screen-change-id" class="u-card" style="display:none;margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div id="u-back-to-account" class="u-back">＜ アカウント設定</div><div class="u-note">ユーザーIDの変更</div></div>
+      <div id="u-display-user-3" class="u-muted"></div>
+    </div>
+
+    <div style="margin-top:14px;max-width:420px">
+      <div class="u-note">現在のユーザーID</div>
+      <div id="u-current-user-id" class="u-readonly">—</div>
+
+      <div style="margin-top:12px">
+        <div class="u-note">新しいユーザーID（メール）</div>
+        <input id="u-newId" type="text" placeholder="例: user@example.com" autocomplete="username" class="u-input">
+        <div id="u-idError" class="u-err">メール形式で入力してください（例: user@example.com）</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="u-note">現在のパスワード</div>
+        <input id="u-currentPw-id" type="password" placeholder="現在のパスワード" autocomplete="current-password" class="u-input">
+      </div>
+
+      <div style="margin-top:12px">
+        <button id="u-btn-update-id" class="u-btn">ユーザーIDを変更</button>
+        <button id="u-btn-cancel-id" class="u-btn u-secondary" style="margin-left:8px">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- パスワード変更画面 -->
+  <div id="u-screen-change-pw" class="u-card" style="display:none;margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div id="u-back-to-account-2" class="u-back">＜ アカウント設定</div><div class="u-note">パスワードの変更</div></div>
+      <div id="u-display-user-4" class="u-muted"></div>
+    </div>
+
+    <div style="margin-top:14px;max-width:520px">
+      <div class="u-note">現在のパスワード</div>
+      <input id="u-currentPw" type="password" placeholder="現在のパスワード" autocomplete="current-password" class="u-input">
+      <div id="u-currentPwError" class="u-err">現在のパスワードが正しくありません。</div>
+
+      <div style="margin-top:12px">
+        <div class="u-note">新しいパスワード</div>
+        <input id="u-newPw" type="password" placeholder="8〜16文字、英字と数字を含む" autocomplete="new-password" class="u-input">
+        <div id="u-pwLengthError" class="u-err">8〜16文字で入力してください。</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="u-note">新しいパスワード（確認）</div>
+        <input id="u-newPwConfirm" type="password" placeholder="もう一度入力" autocomplete="new-password" class="u-input">
+        <div id="u-pwAlphanumericError" class="u-err">英字と数字の両方を含めてください。</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <button id="u-btn-update-pw" class="u-btn">パスワードを変更</button>
+        <button id="u-btn-cancel-pw" class="u-btn u-secondary" style="margin-left:8px">キャンセル</button>
+      </div>
+
+      <div class="u-note" style="margin-top:12px">パスワード要件：8〜16文字、英字と数字を組み合わせてください。</div>
+    </div>
+  </div>
+
+  <!-- 47 設定エラー表示 -->
+  <div id="u-screen-error" class="u-card" style="display:none;margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div id="u-back-to-main-from-error" class="u-back">＜ 設定</div><div class="u-note">設定エラー</div></div>
+      <div id="u-display-user-5" class="u-muted"></div>
+    </div>
+
+    <div style="margin-top:14px;max-width:520px">
+      <div style="background:#fee;border-radius:8px;border:1px solid #fca5a5;padding:14px">
+        <div style="color:#dc2626;font-weight:700;margin-bottom:8px" id="u-error-title">エラーが発生しました</div>
+        <div style="color:#991b1b;font-size:14px" id="u-error-message">詳細不明なエラーが発生しました。</div>
+      </div>
+
+      <div style="margin-top:14px">
+        <button id="u-btn-error-retry" class="u-btn">再度操作する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 共通スクリプト -->
+<script src="js/app.js"></script>  <script>
+(function(){
+  // ログインチェック関数を冒頭で呼び出し
+  const currentUserId = (typeof window.checkAuth === 'function') ? window.checkAuth() : (localStorage.getItem('login_user_id') || '');
+  
+  if (!currentUserId) {
+    console.warn('ログイン情報が見つかりません。ログイン画面へリダイレクトします。');
+    if (typeof location !== 'undefined' && location.href) {
+      location.href = 'login.html';
+    }
+  }
+
+  function el(id){ return document.getElementById(id) }
+  function show(id){ if(el(id)) el(id).style.display='block' }
+  function hide(id){ if(el(id)) el(id).style.display='none' }
+  function showOnly(id){ 
+    ['u-screen-main','u-screen-account-menu','u-screen-change-id','u-screen-change-pw','u-screen-error'].forEach(function(s){ 
+      if(s===id) show(s); 
+      else hide(s) 
+    }) 
+  }
+
+  function updateUserDisplay(uid) {
+    var userText = uid ? 'ログイン中: ' + uid : '未ログイン';
+    ['u-display-user','u-display-user-2','u-display-user-3','u-display-user-4','u-display-user-5'].forEach(function(id){ 
+      var eln = el(id); 
+      if(eln) eln.textContent = userText; 
+    });
+    if(el('u-current-user')) el('u-current-user').textContent = uid || '—';
+    if(el('u-current-user-id')) el('u-current-user-id').textContent = uid || '—';
+  }
+
+  function showError(title, message) {
+    if(el('u-error-title')) el('u-error-title').textContent = title;
+    if(el('u-error-message')) el('u-error-message').textContent = message;
+    showOnly('u-screen-error');
+  }
+
+  var logoutFn = (typeof window.logout === 'function') ? window.logout : function(){ 
+    localStorage.removeItem('login_user_id'); 
+    return Promise.resolve(); 
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var uid = currentUserId || localStorage.getItem('login_user_id') || '';
+    updateUserDisplay(uid);
+    showOnly('u-screen-main');
+  });
+
+  // 画面遷移
+  if(el('u-back-to-home')) el('u-back-to-home').addEventListener('click', function(){ location.href = 'home.html'; });
+  if(el('u-link-account')) el('u-link-account').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
+  if(el('u-back-to-main')) el('u-back-to-main').addEventListener('click', function(){ showOnly('u-screen-main') });
+  if(el('u-back-to-account')) el('u-back-to-account').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
+  if(el('u-back-to-account-2')) el('u-back-to-account-2').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
+  if(el('u-back-to-main-from-error')) el('u-back-to-main-from-error').addEventListener('click', function(){ showOnly('u-screen-main') });
+  if(el('u-go-change-id')) el('u-go-change-id').addEventListener('click', function(){ showOnly('u-screen-change-id') });
+  if(el('u-go-change-pw')) el('u-go-change-pw').addEventListener('click', function(){ showOnly('u-screen-change-pw') });
+  if(el('u-btn-cancel-id')) el('u-btn-cancel-id').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
+  if(el('u-btn-cancel-pw')) el('u-btn-cancel-pw').addEventListener('click', function(){ showOnly('u-screen-account-menu') });
+  if(el('u-btn-error-retry')) el('u-btn-error-retry').addEventListener('click', function(){ showOnly('u-screen-main') });
+
+  // ログアウト
+  if(el('u-link-logout')) el('u-link-logout').addEventListener('click', async function(){
+    if(!confirm('ログアウトしますか？')) return;
+    try { await logoutFn(); } catch(e){ localStorage.removeItem('login_user_id'); }
+    updateUserDisplay('');
+    alert('ログアウトしました。ログイン画面に戻ります。');
+    if(typeof location !== 'undefined' && location.href) {
+      location.href = 'login.html';
+    }
+  });
+
+  // ユーザーID変更処理
+  if(el('u-btn-update-id')) el('u-btn-update-id').addEventListener('click', function(){
+    var v = (el('u-newId') && el('u-newId').value || '').trim();
+    var idErr = el('u-idError'); 
+    if(idErr) idErr.style.display='none';
+    
+    // メール形式チェック
+    if(!v || v.indexOf('@')<1 || v.split('@')[1].indexOf('.')<1){ 
+      if(idErr) idErr.style.display='block'; 
+      return; 
+    }
+    
+    var cur = el('u-currentPw-id') ? el('u-currentPw-id').value : '';
+    if(!cur){ 
+      showError('パスワードが未入力です', '現在のパスワードを入力してください。');
+      return; 
+    }
+    
+    // 成功処理
+    localStorage.setItem('login_user_id', v);
+    updateUserDisplay(v);
+    alert('ユーザーIDを変更しました: ' + v);
+    if(el('u-newId')) el('u-newId').value = '';
+    if(el('u-currentPw-id')) el('u-currentPw-id').value = '';
+    showOnly('u-screen-account-menu');
+  });
+
+  // パスワード変更処理
+  if(el('u-btn-update-pw')) el('u-btn-update-pw').addEventListener('click', function(){
+    var cur = el('u-currentPw') ? el('u-currentPw').value : '';
+    var pw = el('u-newPw') ? el('u-newPw').value : '';
+    var pwc = el('u-newPwConfirm') ? el('u-newPwConfirm').value : '';
+    var lenErr = el('u-pwLengthError'), anErr = el('u-pwAlphanumericError'), curErr = el('u-currentPwError');
+    
+    if(lenErr) lenErr.style.display='none'; 
+    if(anErr) anErr.style.display='none'; 
+    if(curErr) curErr.style.display='none';
+    
+    if(!cur){ 
+      if(curErr){ 
+        curErr.textContent='現在のパスワードを入力してください。'; 
+        curErr.style.display='block' 
+      } 
+      return; 
+    }
+    
+    var hasError=false;
+    
+    if(pw.length < 8 || pw.length > 16){ 
+      if(lenErr) lenErr.style.display='block'; 
+      hasError=true; 
+    }
+    
+    var hasLetter = /[A-Za-z]/.test(pw), hasNumber = /[0-9]/.test(pw);
+    if(!(hasLetter && hasNumber)){ 
+      if(anErr) anErr.style.display='block'; 
+      hasError=true; 
+    }
+    
+    if(pw !== pwc){ 
+      showError('パスワードが一致しません', '新しいパスワードと確認が一致しません。');
+      hasError=true; 
+    }
+    
+    if(!hasError){ 
+      alert('パスワードを変更しました');
+      if(el('u-currentPw')) el('u-currentPw').value=''; 
+      if(el('u-newPw')) el('u-newPw').value=''; 
+      if(el('u-newPwConfirm')) el('u-newPwConfirm').value=''; 
+      showOnly('u-screen-account-menu'); 
+    }
+  });
+})();
+</script>
+</body>
+</html>
