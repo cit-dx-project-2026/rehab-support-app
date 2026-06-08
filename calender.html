@@ -290,11 +290,11 @@
     </div>
 
     <!-- カレンダーエリア -->
-    <div class="calendar-header">
-        <button class="calendar-nav-btn">&lt;</button>
-        <div class="calendar-title" id="calendar-month-title">2026年 50月</div>
-        <button class="calendar-nav-btn">&gt;</button>
-    </div>
+    <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <button id="prev-month" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px;">◀</button>
+    <h1 id="calendar-title" style="margin: 0; font-size: 18px;">2026年5月</h1>
+    <button id="next-month" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px;">▶</button>
+</div>
 
     <div class="calendar-grid" id="calendar-grid">
         <!-- 曜日ヘッダー -->
@@ -339,64 +339,94 @@
 </div>
 
 <script>
-    // カレンダー用のダミーライフログデータ
+    // ★鈴木修正：データのキーを「2026-5-8」の形式に合わせ、さらに「stamp」ではなく元の「emoji」をそのまま使う形に統一します！
     const dummyLogData = {
-        8:  { mood: "5", emoji: "😆", condition: "良い", outing: "した（散歩）", sleep: "深い", times: "就寝 23:00 / 起床 06:30" },
-        9:  { mood: "4", emoji: "😊", condition: "良い", outing: "した（通院）", sleep: "普通", times: "就寝 23:30 / 起床 07:00" },
-        10: { mood: "3", emoji: "😐", condition: "普通", outing: "していない", sleep: "浅い", times: "就寝 00:30 / 起床 08:00" },
-        11: { mood: "2", emoji: "😞", condition: "悪い", outing: "していない", sleep: "浅い", times: "就寝 01:00 / 起床 07:30" }
+        "2026-5-8":  { mood: "5", emoji: "😆", condition: "good", outing: "した（散歩）", sleep: "深い", times: "就寝 23:00 / 起床 06:30" },
+        "2026-5-9":  { mood: "4", emoji: "😊", condition: "good", outing: "した（通院）", sleep: "普通", times: "就寝 23:30 / 起床 07:00" },
+        "2026-5-10": { mood: "3", emoji: "😐", condition: "normal", outing: "していない", sleep: "浅い", times: "就寝 00:30 / 起床 08:00" },
+        "2026-5-11": { mood: "2", emoji: "😞", condition: "bad", outing: "していない", sleep: "浅い", times: "就寝 01:00 / 起床 07:30" }
     };
 
-    // カレンダーの簡易描画ロジック（2026年5月を想定）
+    // ★鈴木追加：現在表示しているカレンダーの年・月（初期値は2026年5月）
+    let currentYear = 2026;
+    let currentMonth = 5; // ※5は5月を意味します
+
     function generateCalendar() {
         const grid = document.getElementById('calendar-grid');
-        const monthTitle = document.getElementById('calendar-month-title');
-        
-        monthTitle.innerText = "2026年 5月";
-        
-        // 2026年5月1日は金曜日（空セルを5つ挿入）
-        for (let i = 0; i < 5; i++) {
+        grid.innerHTML = ''; // 💡 一度カレンダーを空っぽにする
+
+        // ★鈴木修正①：タイトル（〇〇年〇月）を画面に反映
+        document.getElementById('calendar-title').innerText = `${currentYear}年${currentMonth}月`;
+
+        // ★鈴木修正②：表示月の「1日」が何曜日か、および「その月が何日まであるか」を自動計算
+        const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay(); // 0(日)〜6(土)
+        const totalDays = new Date(currentYear, currentMonth, 0).getDate(); // その月の日数
+
+        // 1日の曜日までの空白を埋める
+        for (let i = 0; i < firstDayIndex; i++) {
             const emptyCell = document.createElement('div');
+            emptyCell.classList.add('calendar-day', 'empty');
             grid.appendChild(emptyCell);
         }
 
-        // 1日〜31日まで描画
-        for (let day = 1; day <= 31; day++) {
+        // 日付マスを生成
+        for (let day = 1; day <= totalDays; day++) {
             const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day';
-            dayCell.innerText = day;
+            dayCell.classList.add('calendar-day');
+            
+            // 日付の数字を入れる
+            const dayNum = document.createElement('span');
+            dayNum.innerText = day;
+            dayCell.appendChild(dayNum);
 
-            // 5月10日を仮の本日（選択中風）とする
-            if (day === 10) {
-                dayCell.classList.add('today');
+            // ★鈴木修正：守屋さんの形式に合わせて、0をつけずに文字列を生成 (例: 2026-5-8)
+            const dateKey = `${currentYear}-${currentMonth}-${day}`;
+
+            // 生成した日付キーで、ダミーデータがあるかチェック
+            if (dummyLogData[dateKey]) {
+                const log = dummyLogData[dateKey];
+                
+                const status = document.createElement('div');
+                status.classList.add('status-stamp');
+                status.innerText = log.emoji; // 👈 ★鈴木修正：stamp ではなく「emoji」に変更して絵文字を確実に表示！
+                
+                if (log.condition === 'good') status.classList.add('good');
+                if (log.condition === 'bad') status.classList.add('bad');
+                dayCell.appendChild(status);
+
+                // クリックイベント（日付キーをそのまま渡す）
+                dayCell.addEventListener('click', () => openModal(dateKey));
+            } else {
+                // 記録がない日のクリックイベント
+                dayCell.addEventListener('click', () => openModal(dateKey));
             }
 
-            // データがある日には絵文字を付与
-            if (dummyLogData[day]) {
-                const emojiSpan = document.createElement('span');
-                emojiSpan.className = 'emoji';
-                emojiSpan.innerText = dummyLogData[day].emoji;
-                dayCell.appendChild(emojiSpan);
-            }
-
-            // クリック時に詳細モーダルを表示
-            dayCell.addEventListener('click', () => openModal(day));
             grid.appendChild(dayCell);
         }
     }
 
     // モーダルを開く処理
-    function openModal(day) {
+    function openModal(dateKey) {
         const modal = document.getElementById('detail-modal');
-        document.getElementById('modal-date-title').innerText = `2026年05月${day.toString().padStart(2, '0')}日`;
+        
+        // dateKey（例: "2026-5-8"）から年月日を分解してタイトルを綺麗に表示
+        const dateParts = dateKey.split('-');
+        const displayDay = dateParts[2].padStart(2, '0');
+        document.getElementById('modal-date-title').innerText = `${dateParts[0]}年${dateParts[1].padStart(2, '0')}月${displayDay}日`;
         
         // データが存在すれば反映、なければデフォルト
-        if (dummyLogData[day]) {
-            document.getElementById('modal-mood').innerText = dummyLogData[day].mood + " / 5";
-            document.getElementById('modal-condition').innerText = dummyLogData[day].condition;
-            document.getElementById('modal-outing').innerText = dummyLogData[day].outing;
-            document.getElementById('modal-sleep').innerText = dummyLogData[day].sleep;
-            document.getElementById('modal-times').innerText = dummyLogData[day].times;
+        if (dummyLogData[dateKey]) {
+            const log = dummyLogData[dateKey];
+            document.getElementById('modal-mood').innerText = log.mood + " / 5";
+            // 画面表示用に日本語に戻してあげる処理
+            let condText = "普通";
+            if(log.condition === 'good') condText = "良い";
+            if(log.condition === 'bad') condText = "悪い";
+            
+            document.getElementById('modal-condition').innerText = condText;
+            document.getElementById('modal-outing').innerText = log.outing;
+            document.getElementById('modal-sleep').innerText = log.sleep;
+            document.getElementById('modal-times').innerText = log.times;
         } else {
             document.getElementById('modal-mood').innerText = "--";
             document.getElementById('modal-condition').innerText = "記録なし";
@@ -424,6 +454,24 @@
     });
 
     // 初期化（鈴木修正：ログイン日数をストレージからリアルタイム取得）
+    // ★鈴木追加：前月・翌月ボタンのクリックイベントを設定
+document.getElementById('prev-month').addEventListener('click', () => {
+    currentMonth--;
+    if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear--;
+    }
+    generateCalendar(); // カレンダーを再描画
+});
+
+document.getElementById('next-month').addEventListener('click', () => {
+    currentMonth++;
+    if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+    }
+    generateCalendar(); // カレンダーを再描画
+});
     window.onload = () => {
         generateCalendar();
         
