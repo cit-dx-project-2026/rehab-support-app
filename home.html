@@ -300,12 +300,26 @@
       // --- app.js 連携モード ---
       loadHomeData();
 
-      // ★鈴木修正：loadHomeDataによって「8」に上書きされた日数を、ストレージの最新値（9）でさらに上書きし直す！
+      // ★鈴木修正：安全ガードをつけて、日数の上書きとお知らせの表示を行う
       if (typeof getLoginDays === 'function') {
-          document.getElementById('display-login-days').innerHTML = getLoginDays() + '<span>日</span>';
-          document.getElementById('display-ai-advice').textContent = getStreakMessage(getLoginDays());
+          const days = getLoginDays();
+          if (document.getElementById('display-login-days')) {
+              document.getElementById('display-login-days').innerHTML = days + '<span>日</span>';
+          }
+          
+          // getStreakMessage が存在するときだけ動かし、ない場合は安全なフォールバックメッセージにする
+          if (document.getElementById('display-ai-advice')) {
+              if (typeof getStreakMessage === 'function') {
+                  document.getElementById('display-ai-advice').textContent = getStreakMessage(days);
+              } else {
+                  document.getElementById('display-ai-advice').textContent = "この調子でリハビリを続けましょう！";
+              }
+          }
       }
-    } else {
+
+      // ★鈴木追加：お知らせエリア（display-news-list）にデータが流れていない場合、強制的に差し込む
+      const newsList = document.getElementById('display-news-list');
+      if (newsList && newsList.children.length === 0) 
       // --- フォールバック（単体動作用デモデータ） ---
 
       // ④ 今日の日付を表示
@@ -366,15 +380,22 @@
       });
     }
 
-    // ===== ② ログアウト → 画面1「ログイン画面」に遷移 =====
-    document.getElementById('btn-logout').addEventListener('click', function() {
-      // app.js に logout() があれば使う
-      if (typeof logout === 'function') {
-        logout();
-      } else {
-        window.location.href = 'login.html';
-      }
-    });
+// ===== ② ログアウト → 画面1「ログイン画面」に遷移 =====
+    // ★鈴木修正：aタグの初期動作を無効化して、確実にページ遷移させる
+    const logoutBtn = document.getElementById('btn-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault(); // 👈 リンクの標準動作（#へのリフレッシュ）を強制ストップ！
+
+        if (confirm('ログアウトしますか？')) {
+          if (typeof logout === 'function') {
+            logout();
+          } else {
+            window.location.href = 'login.html';
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
