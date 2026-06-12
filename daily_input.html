@@ -541,6 +541,10 @@
         incrementLoginDays();
     }
 
+    // ★鈴木追加：今日の日付（例: "2026-06-12"）をキーにして、入力完了フラグをローカルストレージに保存
+    const todayStr = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('has_input_today_' + todayStr, 'true');
+
     document.getElementById('t-modal-good').classList.remove('t-show');
     document.getElementById('t-modal-bad').classList.remove('t-show');
     window.location.href = 'home.html';

@@ -561,7 +561,18 @@
             let savedId = loginId.value;
             try { const b = await res.json(); if (b && b.user_id) savedId = b.user_id; } catch (_) {}
             persistLogin(savedId);
-            window.location.href = "daily_input.html"; // 画面19 (積山担当)
+            
+            // ★鈴木修正：今日すでに入力済みかチェックして行き先を自動で振り分ける
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const hasInputToday = localStorage.getItem('has_input_today_' + todayStr);
+
+            if (hasInputToday === 'true') {
+              // 本日2回目以降なら直接ホーム画面へジャンプ！
+              window.location.href = "home.html";
+            } else {
+              // 本日1回目なら通常通り日次入力画面へ
+              window.location.href = "daily_input.html";
+            }
             return;
           }
           let msg = "メールアドレスまたはパスワードが正しくありません。";
