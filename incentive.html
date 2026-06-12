@@ -370,6 +370,13 @@
                     <p class="s-modal-condition-content">連続ログイン日数を14日達成</p>
                     <p class="s-modal-condition-desc">現在の進捗：7 / 14 日完了（あと7日）</p>
                 </div>
+
+                <!-- 🌟★鈴木追加：モーダル専用の進捗ゲージエリア -->
+                <div style="margin: -15px auto 25px auto; padding: 0 5px; text-align: left; max-width: 100%;">
+                    <div style="background-color: #e9ecef; border-radius: 6px; height: 10px; overflow: hidden; width: 100%;">
+                        <div id="s-modal-gauge-bar" style="background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
                 
                 <div class="s-modal-actions">
                     <button class="s-btn-ok" onclick="closeModal('locked-modal')">OK</button>
@@ -527,7 +534,7 @@
         `;
         document.body.insertAdjacentHTML('beforeend', successModalHtml);
     };
-
+    
     // ④ 【要望反映：赤字エラー化】ロックされているチケットをクリックした時のポップアップ
     window.openLockedModal = function(couponName, shopName) {
         const lockedModal = document.getElementById('locked-modal');
@@ -538,6 +545,15 @@
                 titleEl.textContent = 'チケットは利用できません';
                 titleEl.style.color = '#dc3545'; // 鮮やかな警告赤
                 titleEl.style.fontWeight = 'bold';
+            }
+            
+            // 🌟★鈴木追加：モーダル内のゲージも現在のログイン日数（12日等）に合わせて自動伸縮させる
+            const currentDays = (typeof getLoginDays === 'function') ? getLoginDays() : 12;
+            const modalGauge = document.getElementById('s-modal-gauge-bar');
+            if (modalGauge) {
+                // 14日目標に対する現在の進捗を％で計算（最大100%）
+                const percentage = Math.min((currentDays / 14) * 100, 100);
+                modalGauge.style.width = percentage + '%';
             }
             
             lockedModal.classList.add('s-show');
