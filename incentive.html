@@ -387,26 +387,45 @@
     const currentUserId = (typeof checkAuth === 'function') ? checkAuth() : localStorage.getItem('login_user_id');
 
     // ==========================================
-    // 2. 【鈴木統合】共通データ（app.js）およびローカルストレージ連動
+    // 2. 【鈴木統合】共通データおよびローカルストレージ連動（目標自動切り替え）
     // ==========================================
     document.addEventListener("DOMContentLoaded", function() {
-        const days = (typeof getLoginDays === 'function') ? getLoginDays() : 8;
+        // 最新のログイン日数を取得（テスト環境に合わせて12日等になります）
+        const days = (typeof getLoginDays === 'function') ? getLoginDays() : 12;
 
         const daysValueEl = document.querySelector('.s-login-days-value');
         if (daysValueEl) daysValueEl.textContent = days + '日';
 
-        const targetDays = 7; 
+        // 🌟★鈴木修正：現在のログイン日数に応じて、目指すべき次のターゲット（目標）を自動判別
+        let targetDays = 7;
+        let rewardName = "ジュース無料券";
+        let rewardDesc = "温泉施設でお好きなジュース1本無料";
+
+        if (days >= 7) {
+            targetDays = 14;
+            rewardName = "マッサージチェア30分券";
+            rewardDesc = "14日ログイン達成特典（◯◯ドラッグストア）";
+        }
+
         const diff = targetDays - days;
         const nextRewardTitleEl = document.querySelector('.s-next-reward-title');
+        const nextRewardNameEl = document.querySelector('.s-next-reward-name');
+        const nextRewardDescEl = document.querySelector('.s-next-reward-desc');
         const gaugeBarEl = document.querySelector('.s-gauge-bar');
         const gaugeLabelsEl = document.querySelector('.s-gauge-labels');
 
+        // テキスト情報を次の特典の内容に書き換え
+        if (nextRewardNameEl) nextRewardNameEl.textContent = rewardName;
+        if (nextRewardDescEl) nextRewardDescEl.textContent = rewardDesc;
+
         if (diff > 0) {
+            // まだ目標に達していない場合（例：12日 / 14日目標）
             if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎁 次の特典まで あと${diff}日`;
             if (gaugeBarEl) gaugeBarEl.style.width = (days / targetDays * 100) + '%';
             if (gaugeLabelsEl) gaugeLabelsEl.innerHTML = `<span>${days}日</span><span>${targetDays}日達成で獲得</span>`;
         } else {
-            if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎉 条件達成済み！`;
+            // 全ての目標（14日）を達成した場合
+            if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎉 全ての特典条件を達成しました！`;
             if (gaugeBarEl) gaugeBarEl.style.width = '100%';
             if (gaugeLabelsEl) gaugeLabelsEl.innerHTML = `<span>${days}日</span><span>目標達成！</span>`;
         }
