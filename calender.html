@@ -161,6 +161,14 @@
             transition: background 0.2s;
         }
 
+        /* ★鈴木追加：ログイン当日（今日）のマスを綺麗にハイライトするスタイル */
+.calendar-day.is-today {
+    background-color: #e6f0fa; /* 💡淡いブルー（背景の同系色マイルドハイライト） */
+    border: 2px solid var(--primary-color); /* 💡アプリのテーマカラーの枠線で強調 */
+    border-radius: 12px;
+    font-weight: bold;
+}
+
         .calendar-day:hover {
             background-color: #e9ecef;
         }
@@ -369,7 +377,7 @@
             grid.appendChild(emptyCell);
         }
 
-        // 日付マスを生成
+        // 日付マスを生成（1日から月末までループ）
         for (let day = 1; day <= totalDays; day++) {
             const dayCell = document.createElement('div');
             dayCell.classList.add('calendar-day');
@@ -382,13 +390,21 @@
             // ★鈴木修正：守屋さんの形式に合わせて、0をつけずに文字列を生成 (例: 2026-5-8)
             const dateKey = `${currentYear}-${currentMonth}-${day}`;
 
+            // 🌟★鈴木追加：本物の「今日」の年月日（0なし形式）を作成してマッチング
+            const realToday = new Date();
+            const realTodayKey = `${realToday.getFullYear()}-${realToday.getMonth() + 1}-${realToday.getDate()}`;
+            
+            if (dateKey === realTodayKey) {
+                dayCell.classList.add('is-today'); // 👈 今日ならハイライトクラスをドッキング！
+            }
+
             // 生成した日付キーで、ダミーデータがあるかチェック
             if (dummyLogData[dateKey]) {
                 const log = dummyLogData[dateKey];
                 
                 const status = document.createElement('div');
                 status.classList.add('status-stamp');
-                status.innerText = log.emoji; // 👈 ★鈴木修正：stamp ではなく「emoji」に変更して絵文字を確実に表示！
+                status.innerText = log.emoji; // 👈 絵文字を表示！
                 
                 if (log.condition === 'good') status.classList.add('good');
                 if (log.condition === 'bad') status.classList.add('bad');
@@ -401,6 +417,7 @@
                 dayCell.addEventListener('click', () => openModal(dateKey));
             }
 
+            // 💡重要：生成した日付マスを最終的にカレンダー画面のgridに合体させる（ここが消えていた可能性が高いです）
             grid.appendChild(dayCell);
         }
     }
