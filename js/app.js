@@ -76,3 +76,45 @@ function getLoginDays() {
     // 保存されている最新の日数を返す（まだなければ初期値8）
     return parseInt(localStorage.getItem('login_days')) || 8;
 }
+
+// 💡 鈴木作成：サーバーからユーザー個別の最新ログイン日数を取得して画面に反映する関数
+async function refreshLoginDays() {
+    const userId = localStorage.getItem("user_id"); // ログイン時に保存したemail
+    const apiKey = "rehab-support-app-2026-key";
+
+    if (!userId) {
+        console.error("ユーザーIDがローカルストレージにありません。");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/api/v1/login-status?user_id=${encodeURIComponent(userId)}`, {
+            method: "GET",
+            headers: {
+                "X-API-KEY": apiKey,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("DBから取得したログイン日数:", data.login_days);
+            
+            // ➔ ここで、中間君のホーム画面や、鈴木さんの特典画面の「日数表示テキスト」や「ゲージ」に数字をハメ込みます！
+            // 例：
+            const daysElement = document.getElementById("login-days-display");
+            if (daysElement) {
+                daysElement.textContent = data.login_days;
+            }
+            
+            // 他の画面の既存ロジック用にLocalStorageのキャッシュも最新にしておく
+            localStorage.setItem("loginDays", data.login_days);
+            localStorage.setItem("inputTodayFlag", data.input_today_flag);
+            
+        } else {
+            console.error("ログインステータスの取得に失敗しました。");
+        }
+    } catch (error) {
+        console.error("通信エラー:", error);
+    }
+}

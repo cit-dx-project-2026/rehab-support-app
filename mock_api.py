@@ -135,22 +135,33 @@ def register():
 # ===============================================================
 # 3. パスワード再設定 API (POST /api/v1/password-reset)
 # ===============================================================
-@app.route('/api/v1/password-reset', methods=['POST'])
-def password_reset():
+# ===============================================================
+# 【新規】ログインステータス取得 API (GET /api/v1/login-status)
+# ===============================================================
+@app.route('/api/v1/login-status', methods=['GET'])
+def get_login_status():
     if not check_api_key():
         return jsonify({"message": "Invalid API Key"}), 401
 
-    data = request.json or {}
-    email = data.get("email")
-    new_password = data.get("new_password")
+    # クエリパラメータからユーザーID（email）を取得
+    email = request.args.get("user_id")
+    if not email:
+        return jsonify({"message": "user_idが必要です。"}), 400
 
     conn = get_db_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?;", (email,)).fetchone()
-    
-    if not user:
-        conn.close()
-        return jsonify({"message": "このメールアドレスは登録されていません。"}), 404
+    login_info = conn.execute("SELECT * FROM login_management WHERE email = ?;", (email,)).fetchone()
+    conn.close()
 
+    if login_info:
+        return jsonify({
+            "user_id": email,
+            "login_days": login_info["login_days"],
+            "input_today_flag": bool(login_info["input_today_flag"]),
+            "last_login_date": login_info["last_login_date"]
+        }), 200
+    else:
+        return jsonify({"login_days": 0, "input_today_flag": False}), 200
+    
     conn.execute("UPDATE users SET password = ? WHERE email = ?;", (new_password, email))
     conn.commit()
     conn.close()

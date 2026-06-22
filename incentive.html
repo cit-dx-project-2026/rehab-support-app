@@ -232,6 +232,7 @@
         /* 状態クラス：使用済み */
         .s-status-used { opacity: 0.5; background-color: #f9f9f9; }
         .s-status-used .s-ticket-left-edge { background-color: #6c757d; }
+        .s-status-used .s-ticket-perforation { border-left-color: #6c757d; }
         .s-used-badge { font-size: 12px; color: #999999; font-weight: bold; margin-right: 15px; }
 
         /* ===================================================
@@ -279,8 +280,6 @@
         
         .s-btn-ok { background-color: #0056b3; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
         .s-btn-ok:hover { background-color: #004080; }
-
-        /* 利用確認用の緑モーダルは、今回修正要件にないため一旦非表示の仕組みのみ維持 */
     </style>
 </head>
 <body class="theme-blue font-medium">
@@ -309,7 +308,7 @@
         <h3 class="s-list-section-title">全特典一覧</h3>
         <section class="s-reward-list">
 
-            <div class="s-reward-card s-status-available">
+            <div class="s-reward-card s-status-available" id="ticket-card-7">
                 <div class="s-ticket-left-edge"></div> <div class="s-reward-left">
                     <div class="s-icon-wrapper">♨</div>
                     <div class="s-reward-info">
@@ -322,7 +321,7 @@
                 </div>
             </div>
 
-            <div class="s-reward-card s-status-locked" onclick="openLockedModal('マッサージチェア30分券', '🛍 ◯◯ドラッグストア')">
+            <div class="s-reward-card s-status-locked" id="ticket-card-14" onclick="openLockedModal('マッサージチェア30分券', '🛍 ◯◯ドラッグストア')">
                 <div class="s-ticket-left-edge"></div> <div class="s-reward-left">
                     <div class="s-icon-wrapper">🛍</div>
                     <div class="s-reward-info">
@@ -332,7 +331,7 @@
                 </div>
                 <div class="s-reward-right">
                     <div class="s-ticket-perforation"></div>
-                    <span class="s-lock-badge">あと7日</span>
+                    <span class="s-lock-badge" id="ticket-badge-14">あと7日</span>
                 </div>
             </div>
 
@@ -371,7 +370,6 @@
                     <p class="s-modal-condition-desc">現在の進捗：7 / 14 日完了（あと7日）</p>
                 </div>
 
-                <!-- 🌟★鈴木追加：モーダル専用の進捗ゲージエリア -->
                 <div style="margin: -15px auto 25px auto; padding: 0 5px; text-align: left; max-width: 100%;">
                     <div style="background-color: #e9ecef; border-radius: 6px; height: 10px; overflow: hidden; width: 100%;">
                         <div id="s-modal-gauge-bar" style="background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
@@ -394,24 +392,67 @@
     const currentUserId = (typeof checkAuth === 'function') ? checkAuth() : localStorage.getItem('login_user_id');
 
     // ==========================================
-    // 2. 【鈴木統合】共通データおよびローカルストレージ連動（目標自動切り替え）
+    // 2. 【鈴木統合】共通データおよびローカルストレージ連動（目標自動切り替え＆リアルタイム同期）
     // ==========================================
-    document.addEventListener("DOMContentLoaded", function() {
-        // 最新のログイン日数を取得（テスト環境に合わせて12日等になります）
-        const days = (typeof getLoginDays === 'function') ? getLoginDays() : 12;
+    document.addEventListener("DOMContentLoaded", async function() {
+        // 💡 [追加機能] データベースからリアルタイムに最新のログイン日数を同期取得
+        let days = 12; // フォールバック値
+        try {
+            if (typeof fetchLatestLoginStatus === 'function') {
+                const status = await fetchLatestLoginStatus();
+                if (status) {
+                    days = status.login_days;
+                }
+            } else if (typeof getLoginDays === 'function') {
+                days = getLoginDays();
+            } else {
+                days = parseInt(localStorage.getItem('loginDays')) || 12;
+            }
+        } catch (e) {
+            console.error("データ同期エラー:", e);
+            days = (typeof getLoginDays === 'function') ? getLoginDays() : 12;
+        }
 
         const daysValueEl = document.querySelector('.s-login-days-value');
         if (daysValueEl) daysValueEl.textContent = days + '日';
 
-        // 🌟★鈴木修正：現在のログイン日数に応じて、目指すべき次のターゲット（目標）を自動判別
+        // 💡 [追加機能] データベースの状況（14日以上など）に合わせてフロントの表示状態を本物同期
+        const ticketCard14 = document.getElementById('ticket-card-14');
+        const ticketBadge14 = document.getElementById('ticket-badge-14');
+        if (days >= 14) {
+            if (ticketCard14) {
+                ticketCard14.classList.remove('s-status-locked');
+                ticketCard14.classList.add('s-status-available');
+                ticketCard14.style.filter = 'none';
+                ticketCard14.style.opacity = '1';
+                // 利用可能になったらクリック時にロックモーダルではなく確認モーダルが開くよう差し替え
+                ticketCard14.setAttribute('onclick', "openConfirmModal('マッサージチェア30分券')");
+            }
+            if (ticketBadge14) {
+                ticketBadge14.className = 's-use-btn';
+                ticketBadge14.textContent = '利用する';
+                ticketBadge14.style.backgroundColor = '#28a745';
+                ticketBadge14.style.color = '#ffffff';
+            }
+        } else {
+            if (ticketBadge14) {
+                ticketBadge14.textContent = `あと${14 - days}日`;
+            }
+        }
+
+        // 現在のログイン日数に応じて、目指すべき次のターゲット（目標）を自動判別
         let targetDays = 7;
         let rewardName = "ジュース無料券";
         let rewardDesc = "温泉施設でお好きなジュース1本無料";
 
-        if (days >= 7) {
+        if (days >= 7 && days < 14) {
             targetDays = 14;
             rewardName = "マッサージチェア30分券";
             rewardDesc = "14日ログイン達成特典（◯◯ドラッグストア）";
+        } else if (days >= 14) {
+            targetDays = 30; // 14日達成後は次の目標日数を設定
+            rewardName = "温泉入浴券";
+            rewardDesc = "提携温泉施設の入浴料が1回無料";
         }
 
         const diff = targetDays - days;
@@ -426,12 +467,10 @@
         if (nextRewardDescEl) nextRewardDescEl.textContent = rewardDesc;
 
         if (diff > 0) {
-            // まだ目標に達していない場合（例：12日 / 14日目標）
             if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎁 次の特典まで あと${diff}日`;
             if (gaugeBarEl) gaugeBarEl.style.width = (days / targetDays * 100) + '%';
             if (gaugeLabelsEl) gaugeLabelsEl.innerHTML = `<span>${days}日</span><span>${targetDays}日達成で獲得</span>`;
         } else {
-            // 全ての目標（14日）を達成した場合
             if (nextRewardTitleEl) nextRewardTitleEl.textContent = `🎉 全ての特典条件を達成しました！`;
             if (gaugeBarEl) gaugeBarEl.style.width = '100%';
             if (gaugeLabelsEl) gaugeLabelsEl.innerHTML = `<span>${days}日</span><span>目標達成！</span>`;
@@ -444,10 +483,10 @@
     });
 
     // ==========================================
-    // 3. 【修正・新設】モーダル表示・非表示（開閉）制御ロジック
+    // 3. 【デザイン維持】モーダル表示・非表示（開閉）制御ロジック
     // ==========================================
     
-    // ① 「利用する」ボタンを押したときの緑の確認モーダル
+    // ① 「利用する」ボタンを押したときの確認モーダル起動設定
     const useButtons = document.querySelectorAll('.s-use-btn');
     useButtons.forEach(function(btn) {
         btn.addEventListener('click', function(e) {
@@ -460,7 +499,7 @@
         });
     });
 
-    // ② 【利用確認モーダルを開く】
+    // ② 【利用確認モーダルを開く】（鈴木さんオリジナルのデザイン・構造を完全維持）
     function openConfirmModal(rewardName) {
         const existingModal = document.getElementById('confirm-modal');
         if (existingModal) existingModal.remove();
@@ -492,16 +531,15 @@
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
+    window.openConfirmModal = openConfirmModal;
 
-    // ③ 【新設：外部設計書32頁準拠】「確定する」を押したときの、スタッフ提示用・利用完了モーダル
+    // ③ 「確定する」を押したときの利用完了モーダル（オリジナルを維持）
     window.handleUseSuccess = function(rewardName) {
-        closeModal('confirm-modal'); // 確認画面を閉じる
+        closeModal('confirm-modal');
 
-        // 既存の完了モーダルがあれば削除
         const existingSuccessModal = document.getElementById('success-modal');
         if (existingSuccessModal) existingSuccessModal.remove();
 
-        // 設計書32ページの仕様に合わせた「利用完了モーダル」を生成
         const successModalHtml = `
             <div id="success-modal" class="s-modal-overlay s-show" style="display: flex;">
                 <div class="s-modal-content" style="text-align: center; max-width: 340px; border-top: 8px solid #28a745;">
@@ -533,25 +571,25 @@
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', successModalHtml);
+        
+        // 💡 今後ここに、DBのステータスをサーバー側で'used'に書き換える非同期API通信処理を記述可能です
     };
     
-    // ④ 【要望反映：赤字エラー化】ロックされているチケットをクリックした時のポップアップ
+    // ④ ロックされているチケットをクリックした時のポップアップ表示
     window.openLockedModal = function(couponName, shopName) {
         const lockedModal = document.getElementById('locked-modal');
         if (lockedModal) {
-            // モーダル内の「チケットは利用できません」のタイトル部分をピンポイントで赤字に変更★
             const titleEl = lockedModal.querySelector('.s-modal-title');
             if (titleEl) {
                 titleEl.textContent = 'チケットは利用できません';
-                titleEl.style.color = '#dc3545'; // 鮮やかな警告赤
+                titleEl.style.color = '#dc3545';
                 titleEl.style.fontWeight = 'bold';
             }
             
-            // 🌟★鈴木追加：モーダル内のゲージも現在のログイン日数（12日等）に合わせて自動伸縮させる
-            const currentDays = (typeof getLoginDays === 'function') ? getLoginDays() : 12;
+            // ゲージもリアルタイムの同期日数に合わせて自動伸縮
+            const currentDays = parseInt(document.querySelector('.s-login-days-value').textContent) || 12;
             const modalGauge = document.getElementById('s-modal-gauge-bar');
             if (modalGauge) {
-                // 14日目標に対する現在の進捗を％で計算（最大100%）
                 const percentage = Math.min((currentDays / 14) * 100, 100);
                 modalGauge.style.width = percentage + '%';
             }
@@ -568,14 +606,13 @@
             modal.classList.remove('s-show');
             modal.style.display = 'none';
             
-            // 動的生成した確認・完了モーダルの場合は要素自体を完全に削除してリセット
             if (modalId === 'confirm-modal' || modalId === 'success-modal') {
                 modal.remove();
             }
         }
     };
 
-    // モーダルの外側（グレー背景）をクリックした時にも安全に閉じて戻る設定
+    // 背景クリッククローズガード
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('s-modal-overlay')) {
             const modalId = e.target.id;
