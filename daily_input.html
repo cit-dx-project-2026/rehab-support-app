@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>日次入力 | 医療アプリ</title>
 
-  <!-- 共通CSS（鈴木作成） -->
   <link rel="stylesheet" href="css/style.css" />
 
   <style>
     /* ========================================
-       積山担当：日次入力画面専用スタイル
-       クラス名プレフィックス「t-」統一
-    ======================================== */
+        積山担当：日次入力画面専用スタイル
+        クラス名プレフィックス「t-」統一
+       ======================================== */
     .t-body {
       font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
       background: #f0f4ff;
@@ -200,7 +199,6 @@
 
 <body class="t-body">
 
-<!-- ヘッダー -->
 <header class="t-header">
   <div class="t-header-left">
     <div class="t-header-icon">
@@ -222,13 +220,11 @@
 <main>
   <div class="t-card">
 
-    <!-- エラーバナー -->
     <div class="t-error-banner" id="t-error-banner">
       <span>⚠️</span>
       <div id="t-error-banner-text"></div>
     </div>
 
-    <!-- 気分（5段階） -->
     <div class="t-section">
       <div class="t-section-label">😊 今日の気分</div>
       <div class="t-mood-group" id="t-mood-group">
@@ -251,7 +247,6 @@
       <div class="t-field-error" id="t-err-mood">気分を選択してください</div>
     </div>
 
-    <!-- 体調 -->
     <div class="t-section">
       <div class="t-section-label">🩺 体調</div>
       <div class="t-btn-group" id="t-condition-group">
@@ -262,7 +257,6 @@
       <div class="t-field-error" id="t-err-condition">体調を選択してください</div>
     </div>
 
-    <!-- 外出 -->
     <div class="t-section">
       <div class="t-section-label">🚶 外出</div>
       <div class="t-btn-group" id="t-outing-group">
@@ -285,7 +279,6 @@
       </div>
     </div>
 
-    <!-- 睡眠の質 -->
     <div class="t-section">
       <div class="t-section-label">🌙 睡眠の質</div>
       <div class="t-btn-group" id="t-sleep-group">
@@ -295,7 +288,6 @@
       <div class="t-field-error" id="t-err-sleep">睡眠の質を選択してください</div>
     </div>
 
-    <!-- 就寝・起床時間 -->
     <div class="t-section">
       <div class="t-section-label">🕐 就寝・起床時間</div>
       <div class="t-time-row">
@@ -311,19 +303,13 @@
       <div class="t-field-error" id="t-err-time">起床時間は就寝時間より後に設定してください</div>
     </div>
 
-    <button class="t-btn-submit" onclick="tHandleSubmit()">記録する</button>
+    <button type="button" class="t-btn-submit" id="t-btn-submit">記録する</button>
 
   </div>
   <footer class="t-footer">© 2025 医療アプリ. All rights reserved.</footer>
 </main>
 
 
-<!-- =============================================
-     モーダル（別ファイルにせずここに記述）
-     通常は display:none → JSで表示切替
-============================================= -->
-
-<!-- 登録完了（良い・普通） -->
 <div class="t-modal-overlay" id="t-modal-good">
   <div class="t-modal">
     <div class="t-modal-icon">✅</div>
@@ -334,7 +320,6 @@
   </div>
 </div>
 
-<!-- 登録完了（悪い） -->
 <div class="t-modal-overlay" id="t-modal-bad">
   <div class="t-modal">
     <div class="t-modal-icon">⚠️</div>
@@ -344,7 +329,6 @@
       体調があまり良くないようです。<br>
       無理をせず、医療機関への相談をご検討ください。
     </div>
-    <!-- 病院アクセスページへ：中間さん担当の home.html（予約アクセス機能）へ遷移 -->
     <button class="t-btn-hospital" onclick="tOpenHospital()">
       🏥 病院の予約アクセスページを開く
     </button>
@@ -353,15 +337,14 @@
 </div>
 
 
-<!-- 共通JS（鈴木作成） -->
+<script src="js/app.js"></script> 
 
 <script>
-  // ★鈴木修正：固定の仮ユーザーを廃止し、鈴木の共通認証センサーからログインIDを正しく取得する
-  const currentUserId = (typeof checkAuth === 'function') ? checkAuth() : (localStorage.getItem('login_user_id') || 'mock-user');
+  const currentUserId = localStorage.getItem('user_id') || 'user@example.com';
 
   /* ==========================================
-     状態管理
-  ========================================== */
+      状態管理
+     ========================================== */
   const tState = {
     mood:      null,
     condition: null,
@@ -388,8 +371,8 @@
   })();
 
   /* ==========================================
-     選択ヘルパー
-  ========================================== */
+      選択ヘルパー
+     ========================================== */
   function tSelectGroup(groupId, val, btnClass) {
     document.querySelectorAll(`#${groupId} .${btnClass}`).forEach(b => {
       b.classList.toggle('t-selected', b.dataset.val === val);
@@ -432,8 +415,8 @@
   }
 
   /* ==========================================
-     エラー表示ヘルパー
-  ========================================== */
+      エラー表示ヘルパー
+     ========================================== */
   function tShowErr(id) { document.getElementById(id).classList.add('t-show'); }
   function tHideErr(id) { document.getElementById(id).classList.remove('t-show'); }
   function tMarkErrGroup(groupId, btnClass) {
@@ -442,8 +425,8 @@
   }
 
   /* ==========================================
-     バリデーション
-  ========================================== */
+      バリデーション
+     ========================================== */
   function tValidate() {
     let ok = true;
     const missing = [];
@@ -482,7 +465,6 @@
       document.getElementById('t-err-time').textContent = '就寝・起床時間を入力してください';
       tShowErr('t-err-time');
       missing.push('就寝・起床時間'); ok = false;
-    
     } else {
       document.getElementById('t-sleep-time').classList.remove('t-err-field');
       document.getElementById('t-wake-time').classList.remove('t-err-field');
@@ -502,30 +484,74 @@
   }
 
   /* ==========================================
-     送信処理（モック）
-  ========================================== */
-  function tHandleSubmit() {
+      送信処理
+     ========================================== */
+  async function tHandleSubmit(e) {
+    if (e && e.preventDefault) {
+        e.preventDefault();
+    }
+
     if (!tValidate()) return;
 
-    // モック：API連携時はここを fetch('/api/daily-record', ...) に差し替える
-    const record = {
-      userId:    currentUserId,
-      date:      new Date().toISOString().slice(0, 10),
-      mood:      tState.mood,
-      condition: tState.condition,
-      outing:    tState.outing,
-      purpose:   tState.purpose,
-      sleep:     tState.sleep,
-      sleepTime: document.getElementById('t-sleep-time').value,
-      wakeTime:  document.getElementById('t-wake-time').value,
-    };
-    console.log('[日次記録 モック INSERT]:', record);
+    const today = new Date();
+    const recordDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const apiKey = "rehab-support-app-2026-key";
 
-    // 体調判定：「悪い」→ 病院案内モーダル、それ以外 → 完了モーダル
-    if (tState.condition === 'bad') {
-      document.getElementById('t-modal-bad').classList.add('t-show');
-    } else {
-      document.getElementById('t-modal-good').classList.add('t-show');
+    const outingText = tState.outing === 'yes' ? 'した' : 'していない';
+    const sleepText = tState.sleep === 'deep' ? '深い' : '浅い';
+    
+    const purposeMap = {
+      "hospital": "通院", "shopping": "買い物", "walk": "散歩・運動",
+      "work": "仕事", "social": "友人・家族との交流", "other": "その他"
+    };
+    const purposeText = tState.outing === 'yes' ? (purposeMap[tState.purpose] || "") : "";
+
+    const requestData = {
+      user_id: currentUserId,
+      record_date: recordDate,
+      mood: parseInt(tState.mood),
+      condition: tState.condition,
+      outing: outingText,
+      purpose: purposeText,
+      sleep: sleepText,
+      bed_time: document.getElementById('t-sleep-time').value,
+      wake_time: document.getElementById('t-wake-time').value
+    };
+
+    const submitBtn = document.getElementById('t-btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '登録中...';
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/v1/daily-record", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": apiKey,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (response.ok) {
+        localStorage.setItem("inputTodayFlag", "true");
+
+        // 体調判定：「悪い」→ 病院案内モーダル、それ以外 → 完了モーダル
+        if (tState.condition === 'bad') {
+          document.getElementById('t-modal-bad').classList.add('t-show');
+        } else {
+          document.getElementById('t-modal-good').classList.add('t-show');
+        }
+      } else {
+        const errRes = await response.json();
+        alert("データベースへの保存に失敗しました: " + (errRes.message || "サーバーエラー"));
+        submitBtn.disabled = false;
+        submitBtn.textContent = '記録する';
+      }
+    } catch (error) {
+      console.error("通信エラー:", error);
+      alert("通信エラーが発生しました。サーバー（mock_api.py）が起動しているか確認してください。");
+      submitBtn.disabled = false;
+      submitBtn.textContent = '記録する';
     }
   }
 
@@ -536,12 +562,6 @@
 
   /* ホームへ遷移 */
   function tGoHome() {
-    // ★鈴木追加：ホームに切り替わる直前にログイン日数を自動で1日増やす
-    if (typeof incrementLoginDays === 'function') {
-        incrementLoginDays();
-    }
-
-    // ★鈴木追加：今日の日付（例: "2026-06-12"）をキーにして、入力完了フラグをローカルストレージに保存
     const todayStr = new Date().toISOString().slice(0, 10);
     localStorage.setItem('has_input_today_' + todayStr, 'true');
 
@@ -550,19 +570,23 @@
     window.location.href = 'home.html';
   }
 
-  /* ログアウト（app.js の共通関数） */
+  /* ログアウト */
   function tHandleLogout() {
     if (confirm('ログアウトしますか？')) {
-      logout();
+      if (typeof logout === 'function') logout();
     }
   }
 
-  /* Enterキーで記録ボタン発火 */
+  /* イベント登録をリスナーに完全一本化 */
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') {
-      tHandleSubmit();
+      tHandleSubmit(e);
     }
   });
+
+  document.getElementById('t-btn-submit').addEventListener('click', function(e) {
+      tHandleSubmit(e);
+  });
 </script>
-<script src="js/app.js"></script>  </body>
+</body>
 </html>

@@ -227,7 +227,6 @@
 <body>
   <div class="n-app-container">
 
-    <!-- ヘッダー -->
     <div class="n-header">
       <div class="n-header-left">
         <div class="n-header-icon">♥</div>
@@ -239,14 +238,12 @@
       <button class="n-btn-logout" id="btn-logout">ログアウト</button>
     </div>
 
-    <!-- 連続ログイン日数カード -->
     <div class="n-streak-card">
       <div class="n-streak-label">連続ログイン日数</div>
       <div class="n-streak-days" id="display-login-days">-<span>日</span></div>
       <div class="n-streak-message" id="display-ai-advice">読み込み中...</div>
     </div>
 
-    <!-- メニューグリッド -->
     <div class="n-menu-grid">
       <a href="calender.html" class="n-menu-item">
         <div class="n-menu-icon n-calendar">📅</div>
@@ -266,7 +263,6 @@
       </a>
     </div>
 
-    <!-- クリニックからのお知らせ -->
     <div class="n-news-section">
       <div class="n-news-header">
         <span class="n-news-header-icon">🔔</span>
@@ -275,54 +271,25 @@
       <div id="display-news-list"></div>
     </div>
 
-    <!-- フッター -->
     <div class="n-footer">
       &copy; 2025 医療アプリ. All rights reserved.
     </div>
   </div>
 
-  <!-- 共通JS（鈴木作成） -->
   <script src="js/app.js"></script>
   <script>
-    // ===== 画面冒頭：ログインチェック =====
-    // app.js の checkAuth() が存在すれば呼び出す（未ログインなら login.html へリダイレクト）
-    if (typeof checkAuth === 'function') {
-      checkAuth();
-    }
-
-    // ===== app.js の loadHomeData() 連携 =====
-    // app.js 側で loadHomeData() が定義されていれば呼び出し、
-    // display-login-days / display-ai-advice / display-news-list / display-today-date
-    // に対してデータが流し込まれる想定。
-    // loadHomeData() が未定義の場合はフォールバックとしてデモデータを表示する。
-
-    if (typeof loadHomeData === 'function') {
-      // --- app.js 連携モード ---
-      loadHomeData();
-
-      // ★鈴木修正：安全ガードをつけて、日数の上書きとお知らせの表示を行う
-      if (typeof getLoginDays === 'function') {
-          const days = getLoginDays();
-          if (document.getElementById('display-login-days')) {
-              document.getElementById('display-login-days').innerHTML = days + '<span>日</span>';
-          }
-          
-          // getStreakMessage が存在するときだけ動かし、ない場合は安全なフォールバックメッセージにする
-          if (document.getElementById('display-ai-advice')) {
-              if (typeof getStreakMessage === 'function') {
-                  document.getElementById('display-ai-advice').textContent = getStreakMessage(days);
-              } else {
-                  document.getElementById('display-ai-advice').textContent = "この調子でリハビリを続けましょう！";
-              }
-          }
+    document.addEventListener("DOMContentLoaded", async function() {
+      // 1. ログインチェック
+      if (typeof checkAuth === 'function') {
+        checkAuth();
       }
 
-      // ★鈴木追加：お知らせエリア（display-news-list）にデータが流れていない場合、強制的に差し込む
-      const newsList = document.getElementById('display-news-list');
-      if (newsList && newsList.children.length === 0) 
-      // --- フォールバック（単体動作用デモデータ） ---
+      // 2. 💡【DB本物同期】サーバーから最新の連続日数を取ってきて反映
+      if (typeof refreshLoginDays === 'function') {
+          await refreshLoginDays();
+      }
 
-      // ④ 今日の日付を表示
+      // 3. 今日の日付を表示
       (function setTodayDate() {
         var now = new Date();
         var y = now.getFullYear();
@@ -331,71 +298,44 @@
         document.getElementById('display-today-date').textContent = y + '年' + m + '月' + d + '日';
       })();
 
-      // ⑤ 連続ログイン日数に応じたAIメッセージ
-      function getStreakMessage(days) {
-        if (days >= 30) return '驚異的な継続力です！あなたの努力が実を結んでいます';
-        if (days >= 14) return '2週間突破！立派な習慣が身についています';
-        if (days >= 7)  return '素晴らしい継続です！';
-        if (days >= 3)  return '良いペースです！この調子で続けましょう';
-        if (days >= 1)  return 'ようこそ！毎日の記録が健康への第一歩です';
-        return '今日から始めましょう！';
-      }
-
-      // デモ用：連続ログイン日数（実際にはDBから取得）
-      // ★鈴木修正：ストレージからリアルタイムに最新日数を取得（なければ初期値8）
-      var consecutiveDays = (typeof getLoginDays === 'function') ? getLoginDays() : 8; 
-      
-      document.getElementById('display-login-days').innerHTML = consecutiveDays + '<span>日</span>';
-      document.getElementById('display-ai-advice').textContent = getStreakMessage(consecutiveDays);
-      // ⑥ お知らせデータ（新着順に3つ表示）
+      // 4. お知らせデータの描画（固定デモ表示を維持）
       var newsData = [
-        {
-          title: '年末年始の診療時間変更のお知らせ',
-          date: '2025/12/20',
-          body: '12月29日〜1月3日は休診となります。'
-        },
-        {
-          title: 'インフルエンザ予防接種のご案内',
-          date: '2025/12/15',
-          body: '予約受付中です。お早めにご予約ください。'
-        },
-        {
-          title: '健康診断キャンペーン実施中',
-          date: '2025/12/10',
-          body: '12月末までお得な料金で受診できます。'
-        }
+        { title: '年末年始の診療 time変更のお知らせ', date: '2025/12/20', body: '12月29日〜1月3日は休診となります。' },
+        { title: 'インフルエンザ予防接種のご案内', date: '2025/12/15', body: '予約受付中です。お早めにご予約ください。' },
+        { title: '健康診断キャンペーン実施中', date: '2025/12/10', body: '12月末までお得な料金で受診できます。' }
       ];
 
       var newsListEl = document.getElementById('display-news-list');
-      newsData.slice(0, 3).forEach(function(news) {
-        var card = document.createElement('div');
-        card.className = 'n-news-card';
-        card.innerHTML =
-          '<div class="n-news-card-header">' +
-            '<div class="n-news-title">' + news.title + '</div>' +
-            '<div class="n-news-date">' + news.date + '</div>' +
-          '</div>' +
-          '<div class="n-news-body">' + news.body + '</div>';
-        newsListEl.appendChild(card);
-      });
-    }
+      if (newsListEl) {
+        newsListEl.innerHTML = "";
+        newsData.slice(0, 3).forEach(function(news) {
+          var card = document.createElement('div');
+          card.className = 'n-news-card';
+          card.innerHTML =
+            '<div class="n-news-card-header">' +
+              '<div class="n-news-title">' + news.title + '</div>' +
+              '<div class="n-news-date">' + news.date + '</div>' +
+            '</div>' +
+            '<div class="n-news-body">' + news.body + '</div>';
+          newsListEl.appendChild(card);
+        });
+      }
 
-// ===== ② ログアウト → 画面1「ログイン画面」に遷移 =====
-    // ★鈴木修正：aタグの初期動作を無効化して、確実にページ遷移させる
-    const logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault(); // 👈 リンクの標準動作（#へのリフレッシュ）を強制ストップ！
-
-        if (confirm('ログアウトしますか？')) {
-          if (typeof logout === 'function') {
-            logout();
-          } else {
-            window.location.href = 'login.html';
+      // 5. ログアウト処理
+      const logoutBtn = document.getElementById('btn-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (confirm('ログアウトしますか？')) {
+            if (typeof logout === 'function') {
+              logout();
+            } else {
+              window.location.href = 'login.html';
+            }
           }
-        }
-      });
-    }
+        });
+      }
+    });
   </script>
 </body>
 </html>

@@ -169,6 +169,85 @@ def get_login_status():
     print(f"[DB SUCCESS] パスワード再設定完了: {email}")
     return jsonify({"message": "Password updated successfully"}), 200
 
+# ===============================================================
+# 【新規】日次記録保存 API (POST /api/v1/daily-record)
+# ===============================================================
+@app.route('/api/v1/daily-record', methods=['POST'])
+def save_daily_record():
+    if not check_api_key():
+        return jsonify({"message": "Invalid API Key"}), 401
+
+    data = request.json or {}
+    email = data.get("user_id")
+    record_date = data.get("record_date")  # 形式: "2026-6-22" や "2026-06-22" などフロントに合わせる
+    mood = data.get("mood")
+    condition = data.get("condition")
+    outing = data.get("outing")
+    purpose = data.get("purpose", "")
+    sleep = data.get("sleep")
+    bed_time = data.get("bed_time")
+    wake_time = data.get("wake_time")
+
+    if not email or not record_date:
+        return jsonify({"message": "user_id と record_date は必須です。"}), 400
+
+    conn = get_db_connection()
+    try:
+        # すでに同じ日のデータがあれば上書き(REPLACE)、なければ挿入
+        conn.execute("""
+            INSERT OR REPLACE INTO daily_records 
+            (email, record_date, mood, condition, outing, purpose, sleep, bed_time, wake_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (email, record_date, mood, condition, outing, purpose, sleep, bed_time, wake_time))
+        
+        # 💡鈴木連動ロジック：日次入力が完了したら、ログイン管理テーブルの input_today_flag を 1 に更新する
+        conn.execute("UPDATE login_management SET input_today_flag = 1 WHERE email = ?;", (email,))
+        
+        conn.commit()
+        print(f"[DB SUCCESS] 日次記録保存完了: {email} ({record_date})")
+        return jsonify({"message": "Daily record saved successfully"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": f"保存エラー: {str(e)}"}), 500
+    finally:
+        conn.close()
+
+# ===============================================================
+# 【新規】日次記録一覧取得 API (GET /api/v1/daily-records)
+# ===============================================================
+@app.route('/api/v1/daily-records', methods=['GET'])
+def get_daily_records():
+    if not check_api_key():
+        return jsonify({"message": "Invalid API Key"}), 401
+
+    email = request.args.get("user_id")
+    if not email:
+        return jsonify({"message": "user_idが必要です。"}), 400
+
+    conn = get_db_connection()
+    # 該当ユーザーの全記録を取得
+    rows = conn.execute("SELECT * FROM daily_records WHERE email = ?;", (email,)).fetchall()
+    conn.close()
+
+    # フロントエンドが扱いやすいようにオブジェクト形式に変換
+    records_dict = {}
+    for row in rows:
+        # 気分(1〜5)に応じた絵文字の自動マッピング
+        mood_num = str(row["mood"])
+        emoji_map = {"5": "😆", "4": "😊", "3": "😐", "2": "😞", "1": "😢"}
+        emoji = emoji_map.get(mood_num, "😐")
+
+        records_dict[row["record_date"]] = {
+            "mood": mood_num,
+            "emoji": emoji,
+            "condition": row["condition"],  # "good", "normal", "bad"
+            "outing": row["outing"],
+            "sleep": row["sleep"],
+            "times": f"就寝 {row['bed_time']} / 起床 {row['wake_time']}"
+        }
+
+    return jsonify(records_dict), 200
+
 if __name__ == '__main__':
     # サーバー起動
     app.run(host='127.0.0.1', port=5000, debug=True)

@@ -162,12 +162,12 @@
         }
 
         /* ★鈴木追加：ログイン当日（今日）のマスを綺麗にハイライトするスタイル */
-.calendar-day.is-today {
-    background-color: #e6f0fa; /* 💡淡いブルー（背景の同系色マイルドハイライト） */
-    border: 2px solid var(--primary-color); /* 💡アプリのテーマカラーの枠線で強調 */
-    border-radius: 12px;
-    font-weight: bold;
-}
+        .calendar-day.is-today {
+            background-color: #e6f0fa; /* 💡淡いブルー（背景の同系色マイルドハイライト） */
+            border: 2px solid var(--primary-color); /* 💡アプリのテーマカラーの枠線で強調 */
+            border-radius: 12px;
+            font-weight: bold;
+        }
 
         .calendar-day:hover {
             background-color: #e9ecef;
@@ -279,41 +279,34 @@
 <body>
 
 <div class="container">
-    <!-- 画面上部ヘッダー -->
     <div class="header">
         <h1>体調カレンダー</h1>
-        <!-- 1. home.htmlへの遷移ボタン -->
         <a href="home.html" class="btn-home">ホームへ</a>
     </div>
 
-    <!-- 2. incentive.htmlへの遷移を兼ねた連続ログイン日数カード -->
     <div class="incentive-card" onclick="location.href='incentive.html'">
         <div class="info-left">
             <span class="info-label">連続ログイン日数</span>
-            <span class="info-value"><span id="display-login-days">8</span>日</span>
+            <span class="info-value"><span id="display-login-days">--</span>日</span>
         </div>
         <div class="info-right">
-            次の特典まで<br>あと <span>5</span> 日
+            次の特典まで<br>あと <span id="display-remaining-days">--</span> 日
         </div>
     </div>
 
-    <!-- カレンダーエリア -->
     <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-    <button id="prev-month" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px;">◀</button>
-    <h1 id="calendar-title" style="margin: 0; font-size: 18px;">2026年5月</h1>
-    <button id="next-month" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px;">▶</button>
-</div>
+        <button id="prev-month" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px;">◀</button>
+        <h1 id="calendar-title" style="margin: 0; font-size: 18px;">2026年5月</h1>
+        <button id="next-month" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px;">▶</button>
+    </div>
 
     <div class="calendar-grid" id="calendar-grid">
-        <!-- 曜日ヘッダー -->
         <div class="weekday">日</div><div class="weekday">月</div><div class="weekday">火</div>
         <div class="weekday">水</div><div class="weekday">木</div><div class="weekday">金</div>
         <div class="weekday">土</div>
-        <!-- 日にちはJavaScriptで動的に生成 -->
-    </div>
+        </div>
 </div>
 
-<!-- 3. 詳細モーダル（サイズ調整・見切れ防止対応） -->
 <div class="modal-overlay" id="detail-modal">
     <div class="modal-content">
         <button class="modal-close-x" id="modal-close-x">✕</button>
@@ -346,96 +339,98 @@
     </div>
 </div>
 
-<script>
-    // ★鈴木修正：データのキーを「2026-5-8」の形式に合わせ、さらに「stamp」ではなく元の「emoji」をそのまま使う形に統一します！
-    const dummyLogData = {
-        "2026-5-8":  { mood: "5", emoji: "😆", condition: "good", outing: "した（散歩）", sleep: "深い", times: "就寝 23:00 / 起床 06:30" },
-        "2026-5-9":  { mood: "4", emoji: "😊", condition: "good", outing: "した（通院）", sleep: "普通", times: "就寝 23:30 / 起床 07:00" },
-        "2026-5-10": { mood: "3", emoji: "😐", condition: "normal", outing: "していない", sleep: "浅い", times: "就寝 00:30 / 起床 08:00" },
-        "2026-5-11": { mood: "2", emoji: "😞", condition: "bad", outing: "していない", sleep: "浅い", times: "就寝 01:00 / 起床 07:30" }
-    };
+<script src="js/app.js"></script>
 
-    // ★鈴木追加：現在表示しているカレンダーの年・月（初期値は2026年5月）
+<script>
+    // 💡 鈴木本物化：ダミーデータを空にし、DBから取得したデータをここに格納するように変更
+    let dbLogData = {};
+
+    // 現在表示しているカレンダーの年・月（初期値は2026年5月）
     let currentYear = 2026;
-    let currentMonth = 5; // ※5は5月を意味します
+    let currentMonth = 5; 
+
+    // 💡 サーバーからユーザーの全日次記録を取得してカレンダーを更新する関数
+    async function loadDailyRecordsFromDB() {
+        const userId = localStorage.getItem("user_id") || "user@example.com";
+        const apiKey = "rehab-support-app-2026-key";
+
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/v1/daily-records?user_id=${encodeURIComponent(userId)}`, {
+                method: "GET",
+                headers: { "X-API-KEY": apiKey }
+            });
+            if (response.ok) {
+                dbLogData = await response.json();
+                console.log("[DB SYNC] 日次記録データを取得しました:", dbLogData);
+            }
+        } catch (e) {
+            console.error("日次記録の取得に失敗しました。ダミーを表示します:", e);
+        }
+        
+        // データを取得し終わった後に、カレンダーを安全に描画する
+        generateCalendar();
+    }
 
     function generateCalendar() {
         const grid = document.getElementById('calendar-grid');
-        grid.innerHTML = ''; // 💡 一度カレンダーを空っぽにする
+        grid.innerHTML = '<div class="weekday">日</div><div class="weekday">月</div><div class="weekday">火</div><div class="weekday">水</div><div class="weekday">木</div><div class="weekday">金</div><div class="weekday">土</div>'; 
 
-        // ★鈴木修正①：タイトル（〇〇年〇月）を画面に反映
         document.getElementById('calendar-title').innerText = `${currentYear}年${currentMonth}月`;
 
-        // ★鈴木修正②：表示月の「1日」が何曜日か、および「その月が何日まであるか」を自動計算
-        const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay(); // 0(日)〜6(土)
-        const totalDays = new Date(currentYear, currentMonth, 0).getDate(); // その月の日数
+        const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay(); 
+        const totalDays = new Date(currentYear, currentMonth, 0).getDate(); 
 
-        // 1日の曜日までの空白を埋める
         for (let i = 0; i < firstDayIndex; i++) {
             const emptyCell = document.createElement('div');
             emptyCell.classList.add('calendar-day', 'empty');
             grid.appendChild(emptyCell);
         }
 
-        // 日付マスを生成（1日から月末までループ）
         for (let day = 1; day <= totalDays; day++) {
             const dayCell = document.createElement('div');
             dayCell.classList.add('calendar-day');
             
-            // 日付の数字を入れる
             const dayNum = document.createElement('span');
             dayNum.innerText = day;
             dayCell.appendChild(dayNum);
 
-            // ★鈴木修正：守屋さんの形式に合わせて、0をつけずに文字列を生成 (例: 2026-5-8)
             const dateKey = `${currentYear}-${currentMonth}-${day}`;
 
-            // 🌟★鈴木追加：本物の「今日」の年月日（0なし形式）を作成してマッチング
             const realToday = new Date();
             const realTodayKey = `${realToday.getFullYear()}-${realToday.getMonth() + 1}-${realToday.getDate()}`;
             
             if (dateKey === realTodayKey) {
-                dayCell.classList.add('is-today'); // 👈 今日ならハイライトクラスをドッキング！
+                dayCell.classList.add('is-today'); 
             }
 
-            // 生成した日付キーで、ダミーデータがあるかチェック
-            if (dummyLogData[dateKey]) {
-                const log = dummyLogData[dateKey];
+            // 💡 鈴木修正：dbLogData（DBデータ）に記録があるか判定
+            if (dbLogData[dateKey]) {
+                const log = dbLogData[dateKey];
                 
                 const status = document.createElement('div');
                 status.classList.add('status-stamp');
-                status.innerText = log.emoji; // 👈 絵文字を表示！
+                status.innerText = log.emoji; 
                 
                 if (log.condition === 'good') status.classList.add('good');
                 if (log.condition === 'bad') status.classList.add('bad');
                 dayCell.appendChild(status);
-
-                // クリックイベント（日付キーをそのまま渡す）
-                dayCell.addEventListener('click', () => openModal(dateKey));
-            } else {
-                // 記録がない日のクリックイベント
-                dayCell.addEventListener('click', () => openModal(dateKey));
             }
 
-            // 💡重要：生成した日付マスを最終的にカレンダー画面のgridに合体させる（ここが消えていた可能性が高いです）
+            dayCell.addEventListener('click', () => openModal(dateKey));
             grid.appendChild(dayCell);
         }
     }
 
-    // モーダルを開く処理
     function openModal(dateKey) {
         const modal = document.getElementById('detail-modal');
-        
-        // dateKey（例: "2026-5-8"）から年月日を分解してタイトルを綺麗に表示
         const dateParts = dateKey.split('-');
         const displayDay = dateParts[2].padStart(2, '0');
         document.getElementById('modal-date-title').innerText = `${dateParts[0]}年${dateParts[1].padStart(2, '0')}月${displayDay}日`;
         
-        // データが存在すれば反映、なければデフォルト
-        if (dummyLogData[dateKey]) {
-            const log = dummyLogData[dateKey];
+        // 💡 鈴木修正：dbLogDataから本物のデータを参照してモーダルに反映
+        if (dbLogData[dateKey]) {
+            const log = dbLogData[dateKey];
             document.getElementById('modal-mood').innerText = log.mood + " / 5";
-            // 画面表示用に日本語に戻してあげる処理
             let condText = "普通";
             if(log.condition === 'good') condText = "良い";
             if(log.condition === 'bad') condText = "悪い";
@@ -455,50 +450,70 @@
         modal.classList.add('active');
     }
 
-    // モーダルを閉じる処理
     function closeModal() {
         document.getElementById('detail-modal').classList.remove('active');
     }
 
-    // イベントリスナー設定
     document.getElementById('modal-close-x').addEventListener('click', closeModal);
     document.getElementById('modal-close-btn').addEventListener('click', closeModal);
-    // Enterキーでも閉じられるように設定
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && document.getElementById('detail-modal').classList.contains('active')) {
             closeModal();
         }
     });
 
-    // 初期化（鈴木修正：ログイン日数をストレージからリアルタイム取得）
-    // ★鈴木追加：前月・翌月ボタンのクリックイベントを設定
-document.getElementById('prev-month').addEventListener('click', () => {
-    currentMonth--;
-    if (currentMonth < 1) {
-        currentMonth = 12;
-        currentYear--;
-    }
-    generateCalendar(); // カレンダーを再描画
-});
+    document.getElementById('prev-month').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 1) {
+            currentMonth = 12;
+            currentYear--;
+        }
+        generateCalendar(); 
+    });
 
-document.getElementById('next-month').addEventListener('click', () => {
-    currentMonth++;
-    if (currentMonth > 12) {
-        currentMonth = 1;
-        currentYear++;
-    }
-    generateCalendar(); // カレンダーを再描画
-});
-    window.onload = () => {
-        generateCalendar();
+    document.getElementById('next-month').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 12) {
+            currentMonth = 1;
+            currentYear++;
+        }
+        generateCalendar(); 
+    });
+
+    // 💡 リアルタイムの最新データベース数値をカードに反映する初期化
+    window.onload = async () => {
+        // 先にDBから日次データをロードしてカレンダーを描画
+        await loadDailyRecordsFromDB();
         
-        // 鈴木追加：共通関数があれば、ストレージから最新の日数を取得して画面に反映
-        if (typeof getLoginDays === 'function') {
-            document.getElementById('display-login-days').innerText = getLoginDays();
+        let loginDays = 12; 
+        try {
+            if (typeof fetchLatestLoginStatus === 'function') {
+                const status = await fetchLatestLoginStatus();
+                if (status) {
+                    loginDays = status.login_days;
+                }
+            } else {
+                loginDays = parseInt(localStorage.getItem('loginDays')) || 12;
+            }
+        } catch (e) {
+            console.error("カレンダー日数同期エラー:", e);
+        }
+
+        const loginDaysEl = document.getElementById('display-login-days');
+        if (loginDaysEl) loginDaysEl.innerText = loginDays;
+
+        let targetDays = 7;
+        if (loginDays >= 7 && loginDays < 14) {
+            targetDays = 14;
+        } else if (loginDays >= 14) {
+            targetDays = 30;
+        }
+        
+        const remainingDaysEl = document.getElementById('display-remaining-days');
+        if (remainingDaysEl) {
+            remainingDaysEl.innerText = Math.max(0, targetDays - loginDays);
         }
     };
 </script>
-
-<script src="js/app.js"></script>
 </body>
 </html>
