@@ -26,7 +26,6 @@
 </head>
 <body>
 <div class="u-wrap">
-  <!-- 41 設定画面表示 -->
   <div id="u-screen-main" class="u-card">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div><div id="u-back-to-home" class="u-back">＜ ホーム</div><div class="u-note">設定</div></div>
@@ -37,7 +36,6 @@
     <div id="u-link-logout" class="u-menu" role="button" tabindex="0"><span style="color:var(--danger);font-weight:700">→ ログアウト</span><div class="u-note">ログアウトすると再ログインが必要です</div></div>
   </div>
 
-  <!-- 42 アカウント設定変更画面 -->
   <div id="u-screen-account-menu" class="u-card" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div><div id="u-back-to-main" class="u-back">＜ 設定</div><div class="u-note">アカウント設定</div></div>
@@ -67,7 +65,6 @@
     </div>
   </div>
 
-  <!-- ユーザーID変更画面 -->
   <div id="u-screen-change-id" class="u-card" style="display:none;margin-top:12px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div><div id="u-back-to-account" class="u-back">＜ アカウント設定</div><div class="u-note">ユーザーIDの変更</div></div>
@@ -87,16 +84,16 @@
       <div style="margin-top:12px">
         <div class="u-note">現在のパスワード</div>
         <input id="u-currentPw-id" type="password" placeholder="現在のパスワード" autocomplete="current-password" class="u-input">
+        <div id="u-currentPwIdError" class="u-err" style="color:var(--danger);font-size:13px;margin-top:8px;display:none">現在のパスワードが正しくありません。</div>
       </div>
 
       <div style="margin-top:12px">
-        <button id="u-btn-update-id" class="u-btn">ユーザーIDを変更</button>
+        <button type="button" class="u-btn" id="u-btn-update-id">ユーザーIDを変更</button>
         <button id="u-btn-cancel-id" class="u-btn u-secondary" style="margin-left:8px">キャンセル</button>
       </div>
     </div>
   </div>
 
-  <!-- パスワード変更画面 -->
   <div id="u-screen-change-pw" class="u-card" style="display:none;margin-top:12px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div><div id="u-back-to-account-2" class="u-back">＜ アカウント設定</div><div class="u-note">パスワードの変更</div></div>
@@ -121,7 +118,7 @@
       </div>
 
       <div style="margin-top:12px">
-        <button id="u-btn-update-pw" class="u-btn">パスワードを変更</button>
+        <button type="button" class="u-btn" id="u-btn-update-pw">パスワードを変更</button>
         <button id="u-btn-cancel-pw" class="u-btn u-secondary" style="margin-left:8px">キャンセル</button>
       </div>
 
@@ -129,7 +126,6 @@
     </div>
   </div>
 
-  <!-- 47 設定エラー表示 -->
   <div id="u-screen-error" class="u-card" style="display:none;margin-top:12px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div><div id="u-back-to-main-from-error" class="u-back">＜ 設定</div><div class="u-note">設定エラー</div></div>
@@ -149,11 +145,10 @@
   </div>
 </div>
 
-<!-- 共通スクリプト -->
-<script src="js/app.js"></script>  <script>
+<script src="js/app.js"></script>
+<script>
 (function(){
-  // ログインチェック関数を冒頭で呼び出し
-  const currentUserId = (typeof window.checkAuth === 'function') ? window.checkAuth() : (localStorage.getItem('login_user_id') || '');
+  let currentUserId = (typeof window.checkAuth === 'function') ? window.checkAuth() : (localStorage.getItem('login_user_id') || '');
   
   if (!currentUserId) {
     console.warn('ログイン情報が見つかりません。ログイン画面へリダイレクトします。');
@@ -182,7 +177,7 @@
     if(el('u-current-user-id')) el('u-current-user-id').textContent = uid || '—';
   }
 
-  function showError(title, message) {
+  function tShowCustomError(title, message) {
     if(el('u-error-title')) el('u-error-title').textContent = title;
     if(el('u-error-message')) el('u-error-message').textContent = message;
     showOnly('u-screen-error');
@@ -223,13 +218,14 @@
     }
   });
 
-  // ユーザーID変更処理
-  if(el('u-btn-update-id')) el('u-btn-update-id').addEventListener('click', function(){
+  // 💡 鈴木DB完全同期修正：ユーザーID変更ボタンを押した時に本物DBへUPDATEリクエストを送る
+  if(el('u-btn-update-id')) el('u-btn-update-id').addEventListener('click', async function(){
     var v = (el('u-newId') && el('u-newId').value || '').trim();
     var idErr = el('u-idError'); 
+    var curIdErr = el('u-currentPwIdError');
     if(idErr) idErr.style.display='none';
+    if(curIdErr) curIdErr.style.display='none';
     
-    // メール形式チェック
     if(!v || v.indexOf('@')<1 || v.split('@')[1].indexOf('.')<1){ 
       if(idErr) idErr.style.display='block'; 
       return; 
@@ -237,21 +233,67 @@
     
     var cur = el('u-currentPw-id') ? el('u-currentPw-id').value : '';
     if(!cur){ 
-      showError('パスワードが未入力です', '現在のパスワードを入力してください。');
+      tShowCustomError('パスワードが未入力です', '現在のパスワードを入力してください。');
       return; 
     }
-    
-    // 成功処理
-    localStorage.setItem('login_user_id', v);
-    updateUserDisplay(v);
-    alert('ユーザーIDを変更しました: ' + v);
-    if(el('u-newId')) el('u-newId').value = '';
-    if(el('u-currentPw-id')) el('u-currentPw-id').value = '';
-    showOnly('u-screen-account-menu');
+
+    const updateIdBtn = el('u-btn-update-id');
+    if(updateIdBtn) { updateIdBtn.disabled = true; updateIdBtn.textContent = '認証＆ID変更中...'; }
+
+    try {
+      // 1. 現在のパスワードが合致するか検証
+      const authResponse = await fetch("http://127.0.0.1:5000/api/v1/login", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": "rehab-support-app-2026-key",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: currentUserId, password: cur })
+      });
+
+      if (!authResponse.ok) {
+        if(curIdErr) curIdErr.style.display = 'block';
+        return;
+      }
+
+      // 💡 2. 本人確認OKなら、新設したID変更APIへリクエストを飛ばしてDBを一斉上書き！
+      const response = await fetch("http://127.0.0.1:5000/api/v1/user-id-update", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": "rehab-support-app-2026-key",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          current_email: currentUserId,
+          new_email: v
+        })
+      });
+
+      if (response.ok) {
+        localStorage.setItem('login_user_id', v);
+        currentUserId = v;
+        updateUserDisplay(v);
+        
+        alert('データベースのユーザーID（メールアドレス）を正常に変更しました！\n次回から新しいIDでログインしてください: ' + v);
+        
+        if(el('u-newId')) el('u-newId').value = '';
+        if(el('u-currentPw-id')) el('u-currentPw-id').value = '';
+        showOnly('u-screen-account-menu');
+      } else {
+        const errData = await response.json();
+        tShowCustomError('ID変更エラー', errData.message || 'IDの変更に失敗しました。');
+      }
+
+    } catch (err) {
+      console.error("ユーザーID変更通信エラー:", err);
+      tShowCustomError('通信エラー', 'サーバーに接続できませんでした。');
+    } finally {
+      if(updateIdBtn) { updateIdBtn.disabled = false; updateIdBtn.textContent = 'ユーザーIDを変更'; }
+    }
   });
 
   // パスワード変更処理
-  if(el('u-btn-update-pw')) el('u-btn-update-pw').addEventListener('click', function(){
+  if(el('u-btn-update-pw')) el('u-btn-update-pw').addEventListener('click', async function(e){
     var cur = el('u-currentPw') ? el('u-currentPw').value : '';
     var pw = el('u-newPw') ? el('u-newPw').value : '';
     var pwc = el('u-newPwConfirm') ? el('u-newPwConfirm').value : '';
@@ -283,16 +325,60 @@
     }
     
     if(pw !== pwc){ 
-      showError('パスワードが一致しません', '新しいパスワードと確認が一致しません。');
+      tShowCustomError('パスワードが一致しません', '新しいパスワードと確認が一致しません。');
       hasError=true; 
     }
     
-    if(!hasError){ 
-      alert('パスワードを変更しました');
-      if(el('u-currentPw')) el('u-currentPw').value=''; 
-      if(el('u-newPw')) el('u-newPw').value=''; 
-      if(el('u-newPwConfirm')) el('u-newPwConfirm').value=''; 
-      showOnly('u-screen-account-menu'); 
+    if(hasError) return;
+
+    const updateBtn = el('u-btn-update-pw');
+    if(updateBtn) { updateBtn.disabled = true; updateBtn.textContent = '変更を検証中...'; }
+
+    try {
+      const authResponse = await fetch("http://127.0.0.1:5000/api/v1/login", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": "rehab-support-app-2026-key",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: currentUserId, password: cur })
+      });
+
+      if (!authResponse.ok) {
+        if(curErr) {
+          curErr.textContent = '現在のパスワードが正しくありません。';
+          curErr.style.display = 'block';
+        }
+        return;
+      }
+
+      const response = await fetch("http://127.0.0.1:5000/api/v1/password-reset", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": "rehab-support-app-2026-key",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: currentUserId,
+          new_password: pw
+        })
+      });
+
+      if (response.ok) {
+        alert('データベースのパスワードを安全に更新しました！');
+        if(el('u-currentPw')) el('u-currentPw').value=''; 
+        if(el('u-newPw')) el('u-newPw').value=''; 
+        if(el('u-newPwConfirm')) el('u-newPwConfirm').value=''; 
+        showOnly('u-screen-account-menu'); 
+      } else {
+        const errData = await response.json();
+        tShowCustomError('変更エラー', errData.message || 'サーバー側で変更処理に失敗しました。');
+      }
+    } catch (err) {
+      console.error("パスワード変更通信エラー:", err);
+      tShowCustomError('通信エラー', 'サーバー（mock_api.py）に接続できませんでした。');
+    } finally {
+      if(updateBtn) { updateBtn.disabled = false; updateBtn.textContent = 'パスワードを変更'; }
     }
   });
 })();

@@ -45,22 +45,17 @@ def login():
             last_login = login_info['last_login_date']
             current_days = login_info['login_days']
             
-            # 【重要：連続ログイン日数の本物計算＆日付変更時リセットロジック】
             if last_login == today_str:
-                # 同日中の2回目以降のログイン ➔ 日数も入力フラグも据え置き（何もしない）
                 pass
             elif last_login == (datetime.date.today() - datetime.timedelta(days=1)).isoformat():
-                # 💡鈴木修正：前日からの連続ログイン時、日数を+1し、かつ「本日入力フラグ」を確実に 0 にリセット！
                 current_days += 1
                 conn.execute("UPDATE login_management SET login_days = ?, last_login_date = ?, input_today_flag = 0 WHERE email = ?;", 
                              (current_days, today_str, email))
             else:
-                # 💡鈴木修正：日が空いてしまった場合、日数を1に戻し、かつ「本日入力フラグ」を確実に 0 にリセット！
                 current_days = 1
                 conn.execute("UPDATE login_management SET login_days = ?, last_login_date = ?, input_today_flag = 0 WHERE email = ?;", 
                              (current_days, today_str, email))
         else:
-            # ログイン管理レコード自体がなければ新しく作成（1日目としてカウント、未入力状態0からスタート）
             conn.execute("INSERT INTO login_management (email, login_days, last_login_date, input_today_flag) VALUES (?, 1, ?, 0);",
                          (email, today_str))
             
@@ -126,7 +121,6 @@ def register():
 
 # ===============================================================
 # 3. パスワード再設定 API (POST /api/v1/password-reset)
-# 💡壊れて消失していたデコレータと関数定義を完全に復元して分離しました！
 # ===============================================================
 @app.route('/api/v1/password-reset', methods=['POST'])
 def password_reset():
@@ -154,7 +148,46 @@ def password_reset():
     return jsonify({"message": "Password updated successfully"}), 200
 
 # ===============================================================
-# 4. ログインステータス取得 API (GET /api/v1/login-status)
+# 4. 【新規追加】ユーザーID変更 API (POST /api/v1/user-id-update)
+# ===============================================================
+@app.route('/api/v1/user-id-update', methods=['POST'])
+def update_user_id():
+    if not check_api_key():
+        return jsonify({"message": "Invalid API Key"}), 401
+
+    data = request.json or {}
+    current_email = data.get("current_email")
+    new_email = data.get("new_email")
+
+    if not current_email or not new_email:
+        return jsonify({"message": "現在のIDと新しいIDが必要です。"}), 400
+
+    conn = get_db_connection()
+    
+    # 新しいアドレスが既に他人に使われていないか重複チェック
+    dup_user = conn.execute("SELECT * FROM users WHERE email = ?;", (new_email,)).fetchone()
+    if dup_user:
+        conn.close()
+        return jsonify({"message": "この新しいメールアドレスは既に他のアカウントで使用されています。"}), 409
+
+    try:
+        # 💡主キーを更新するため、外部キー制約のある関連テーブルも含めて一斉に書き換える
+        conn.execute("UPDATE users SET email = ? WHERE email = ?;", (new_email, current_email))
+        conn.execute("UPDATE login_management SET email = ? WHERE email = ?;", (new_email, current_email))
+        conn.execute("UPDATE daily_records SET email = ? WHERE email = ?;", (new_email, current_email))
+        conn.execute("UPDATE incentive SET email = ? WHERE email = ?;", (new_email, current_email))
+        
+        conn.commit()
+        print(f"[DB SUCCESS] ユーザーID変更完了: {current_email} ➔ {new_email}")
+        return jsonify({"message": "User ID updated successfully"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": f"ID変更エラー: {str(e)}"}), 500
+    finally:
+        conn.close()
+
+# ===============================================================
+# 5. ログインステータス取得 API (GET /api/v1/login-status)
 # ===============================================================
 @app.route('/api/v1/login-status', methods=['GET'])
 def get_login_status():
@@ -180,7 +213,7 @@ def get_login_status():
         return jsonify({"login_days": 0, "input_today_flag": False}), 200
 
 # ===============================================================
-# 5. 日次記録保存 API (POST /api/v1/daily-record)
+# 6. 日次記録保存 API (POST /api/v1/daily-record)
 # ===============================================================
 @app.route('/api/v1/daily-record', methods=['POST'])
 def save_daily_record():
@@ -221,7 +254,7 @@ def save_daily_record():
         conn.close()
 
 # ===============================================================
-# 6. 日次記録一覧取得 API (GET /api/v1/daily-records)
+# 7. 日次記録一覧取得 API (GET /api/v1/daily-records)
 # ===============================================================
 @app.route('/api/v1/daily-records', methods=['GET'])
 def get_daily_records():
