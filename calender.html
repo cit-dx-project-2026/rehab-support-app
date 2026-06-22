@@ -161,10 +161,9 @@
             transition: background 0.2s;
         }
 
-        /* ★鈴木追加：ログイン当日（今日）のマスを綺麗にハイライトするスタイル */
         .calendar-day.is-today {
-            background-color: #e6f0fa; /* 💡淡いブルー（背景の同系色マイルドハイライト） */
-            border: 2px solid var(--primary-color); /* 💡アプリのテーマカラーの枠線で強調 */
+            background-color: #e6f0fa;
+            border: 2px solid var(--primary-color);
             border-radius: 12px;
             font-weight: bold;
         }
@@ -173,13 +172,7 @@
             background-color: #e9ecef;
         }
 
-        .calendar-day.today {
-            background-color: #e3f2fd;
-            border: 1px solid var(--primary-color);
-            font-weight: bold;
-        }
-
-        .calendar-day .emoji {
+        .calendar-day .status-stamp {
             font-size: 16px;
             margin-top: 2px;
         }
@@ -199,7 +192,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
-            padding: 20px; /* 画面端の余白を確保して見切れを防止 */
+            padding: 20px;
             box-sizing: border-box;
         }
 
@@ -213,7 +206,7 @@
             border-radius: 16px;
             padding: 20px;
             width: 100%;
-            max-width: 360px; /* 横幅が広がりすぎず、見切れない最適なサイズ */
+            max-width: 360px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             box-sizing: border-box;
             position: relative;
@@ -304,7 +297,7 @@
         <div class="weekday">日</div><div class="weekday">月</div><div class="weekday">火</div>
         <div class="weekday">水</div><div class="weekday">木</div><div class="weekday">金</div>
         <div class="weekday">土</div>
-        </div>
+    </div>
 </div>
 
 <div class="modal-overlay" id="detail-modal">
@@ -315,23 +308,23 @@
         <div class="modal-body">
             <div class="modal-body-item">
                 <span class="label">気分</span>
-                <span class="value" id="modal-mood">4 / 5</span>
+                <span class="value" id="modal-mood">--</span>
             </div>
             <div class="modal-body-item">
                 <span class="label">体調</span>
-                <span class="value" id="modal-condition">普通</span>
+                <span class="value" id="modal-condition">--</span>
             </div>
             <div class="modal-body-item">
                 <span class="label">外出</span>
-                <span class="value" id="modal-outing">していない</span>
+                <span class="value" id="modal-outing">--</span>
             </div>
             <div class="modal-body-item">
                 <span class="label">睡眠の質</span>
-                <span class="value" id="modal-sleep">深い</span>
+                <span class="value" id="modal-sleep">--</span>
             </div>
             <div class="modal-body-item">
                 <span class="label">就寝・起床時間</span>
-                <span class="value" id="modal-times">就寝 23:30 / 起床 07:00</span>
+                <span class="value" id="modal-times">--</span>
             </div>
         </div>
         
@@ -342,16 +335,15 @@
 <script src="js/app.js"></script>
 
 <script>
-    // 💡 鈴木本物化：ダミーデータを空にし、DBから取得したデータをここに格納するように変更
     let dbLogData = {};
 
-    // 現在表示しているカレンダーの年・月（初期値は2026年5月）
-    let currentYear = 2026;
-    let currentMonth = 5; 
+    // 現在表示しているカレンダーの年・月（現在日時に合わせる）
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth() + 1; 
 
-    // 💡 サーバーからユーザーの全日次記録を取得してカレンダーを更新する関数
     async function loadDailyRecordsFromDB() {
-        const userId = localStorage.getItem("user_id") || "user@example.com";
+        // 💡鈴木修正：login_user_id から鈴木さんのメールアドレスを確実に取得
+        const userId = localStorage.getItem("login_user_id") || "user@example.com";
         const apiKey = "rehab-support-app-2026-key";
 
         try {
@@ -364,10 +356,9 @@
                 console.log("[DB SYNC] 日次記録データを取得しました:", dbLogData);
             }
         } catch (e) {
-            console.error("日次記録の取得に失敗しました。ダミーを表示します:", e);
+            console.error("日次記録の取得に失敗しました:", e);
         }
         
-        // データを取得し終わった後に、カレンダーを安全に描画する
         generateCalendar();
     }
 
@@ -394,6 +385,7 @@
             dayNum.innerText = day;
             dayCell.appendChild(dayNum);
 
+            // 💡鈴木修正：データベースの保存形式 "2026-6-22" に完全一致するキーを生成
             const dateKey = `${currentYear}-${currentMonth}-${day}`;
 
             const realToday = new Date();
@@ -403,7 +395,6 @@
                 dayCell.classList.add('is-today'); 
             }
 
-            // 💡 鈴木修正：dbLogData（DBデータ）に記録があるか判定
             if (dbLogData[dateKey]) {
                 const log = dbLogData[dateKey];
                 
@@ -416,6 +407,7 @@
                 dayCell.appendChild(status);
             }
 
+            // クリックイベントにキーを渡す
             dayCell.addEventListener('click', () => openModal(dateKey));
             grid.appendChild(dayCell);
         }
@@ -424,19 +416,23 @@
     function openModal(dateKey) {
         const modal = document.getElementById('detail-modal');
         const dateParts = dateKey.split('-');
-        const displayDay = dateParts[2].padStart(2, '0');
-        document.getElementById('modal-date-title').innerText = `${dateParts[0]}年${dateParts[1].padStart(2, '0')}月${displayDay}日`;
         
-        // 💡 鈴木修正：dbLogDataから本物のデータを参照してモーダルに反映
+        // ヘッダーの表示は綺麗に0埋めして表示
+        const displayMonth = dateParts[1].padStart(2, '0');
+        const displayDay = dateParts[2].padStart(2, '0');
+        document.getElementById('modal-date-title').innerText = `${dateParts[0]}年${displayMonth}月${displayDay}日`;
+        
+        // 💡鈴木修正：dbLogDataから正確に一致する日付キーで本物データを抽出してモーダルへ流し込む
         if (dbLogData[dateKey]) {
             const log = dbLogData[dateKey];
             document.getElementById('modal-mood').innerText = log.mood + " / 5";
+            
             let condText = "普通";
             if(log.condition === 'good') condText = "良い";
             if(log.condition === 'bad') condText = "悪い";
             
             document.getElementById('modal-condition').innerText = condText;
-            document.getElementById('modal-outing').innerText = log.outing;
+            document.getElementById('modal-outing').innerText = log.outing + (log.outing === "した" && log.purpose ? `（${log.purpose}）` : "");
             document.getElementById('modal-sleep').innerText = log.sleep;
             document.getElementById('modal-times').innerText = log.times;
         } else {
@@ -480,12 +476,10 @@
         generateCalendar(); 
     });
 
-    // 💡 リアルタイムの最新データベース数値をカードに反映する初期化
     window.onload = async () => {
-        // 先にDBから日次データをロードしてカレンダーを描画
         await loadDailyRecordsFromDB();
         
-        let loginDays = 12; 
+        let loginDays = 14; 
         try {
             if (typeof fetchLatestLoginStatus === 'function') {
                 const status = await fetchLatestLoginStatus();
@@ -493,7 +487,7 @@
                     loginDays = status.login_days;
                 }
             } else {
-                loginDays = parseInt(localStorage.getItem('loginDays')) || 12;
+                loginDays = parseInt(localStorage.getItem('loginDays')) || 14;
             }
         } catch (e) {
             console.error("カレンダー日数同期エラー:", e);

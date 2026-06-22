@@ -340,7 +340,8 @@
 <script src="js/app.js"></script> 
 
 <script>
-  const currentUserId = localStorage.getItem('user_id') || 'user@example.com';
+  // 💡 鈴木修正：岩松君の login_user_id から本物のメールアドレスを確実に引っ張ってくる形に変更！
+  const currentUserId = localStorage.getItem('login_user_id') || 'user@example.com';
 
   /* ==========================================
       状態管理

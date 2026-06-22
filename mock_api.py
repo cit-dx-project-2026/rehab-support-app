@@ -35,36 +35,32 @@ def login():
         return jsonify({"message": "メールアドレスとパスワードを入力してください。"}), 400
 
     conn = get_db_connection()
-    # データベースから該当するユーザーを探索
     user = conn.execute("SELECT * FROM users WHERE email = ? AND password = ?;", (email, password)).fetchone()
     
     if user:
-        # 💡鈴木追加ロジック：ログインが成功したら、ログイン管理テーブルの情報を取得・判定する
         login_info = conn.execute("SELECT * FROM login_management WHERE email = ?;", (email,)).fetchone()
-        
-        # 今日（当日の日付文字列 例: "2026-06-20"）を取得
         today_str = datetime.date.today().isoformat()
         
         if login_info:
             last_login = login_info['last_login_date']
             current_days = login_info['login_days']
             
-            # 【重要：連続ログイン日数の本物計算ロジック】
+            # 【重要：連続ログイン日数の本物計算＆日付変更時リセットロジック】
             if last_login == today_str:
-                # 同日中の2回目以降のログイン ➔ 日数は据え置き
+                # 同日中の2回目以降のログイン ➔ 日数も入力フラグも据え置き（何もしない）
                 pass
             elif last_login == (datetime.date.today() - datetime.timedelta(days=1)).isoformat():
-                # 前日からの連続ログイン ➔ 日数を+1更新
+                # 💡鈴木修正：前日からの連続ログイン時、日数を+1し、かつ「本日入力フラグ」を確実に 0 にリセット！
                 current_days += 1
-                conn.execute("UPDATE login_management SET login_days = ?, last_login_date = ? WHERE email = ?;", 
+                conn.execute("UPDATE login_management SET login_days = ?, last_login_date = ?, input_today_flag = 0 WHERE email = ?;", 
                              (current_days, today_str, email))
             else:
-                # 日が空いてしまった場合、または新規 ➔ 日数を1にリセット
+                # 💡鈴木修正：日が空いてしまった場合、日数を1に戻し、かつ「本日入力フラグ」を確実に 0 にリセット！
                 current_days = 1
-                conn.execute("UPDATE login_management SET login_days = ?, last_login_date = ? WHERE email = ?;", 
+                conn.execute("UPDATE login_management SET login_days = ?, last_login_date = ?, input_today_flag = 0 WHERE email = ?;", 
                              (current_days, today_str, email))
         else:
-            # ログイン管理レコード自体がなければ新しく作成（1日目としてカウント）
+            # ログイン管理レコード自体がなければ新しく作成（1日目としてカウント、未入力状態0からスタート）
             conn.execute("INSERT INTO login_management (email, login_days, last_login_date, input_today_flag) VALUES (?, 1, ?, 0);",
                          (email, today_str))
             
@@ -99,24 +95,20 @@ def register():
 
     conn = get_db_connection()
     
-    # 既に同じメールアドレスが登録されていないか重複チェック
     existing_user = conn.execute("SELECT * FROM users WHERE email = ?;", (email,)).fetchone()
     if existing_user:
         conn.close()
         return jsonify({"message": "このメールアドレスは既に登録されています。"}), 409
 
     try:
-        # 1. ユーザー情報テーブルに挿入
         conn.execute("INSERT INTO users (email, password, username) VALUES (?, ?, ?);", 
                      (email, password, username))
         
-        # 2. ログイン管理テーブルの初期レコードも一緒に作っておく（初期日数0）
         conn.execute("INSERT INTO login_management (email, login_days, last_login_date, input_today_flag) VALUES (?, 0, NULL, 0);",
                      (email,))
         
-        # 3. 新規特典データの初期セット（ロックされた状態）を自動生成
         conn.executemany("""
-        INSERT INTO incentives (email, incentive_type, status, required_days, expire_date, shop_name)
+        INSERT INTO incentive (email, incentive_type, status, required_days, expire_date, shop_name)
         VALUES (?, ?, ?, ?, ?, ?);
         """, [
             (email, "ジュース無料券", "locked", 7, "残り7日", "◯◯温泉"),
@@ -134,16 +126,41 @@ def register():
 
 # ===============================================================
 # 3. パスワード再設定 API (POST /api/v1/password-reset)
+# 💡壊れて消失していたデコレータと関数定義を完全に復元して分離しました！
 # ===============================================================
+@app.route('/api/v1/password-reset', methods=['POST'])
+def password_reset():
+    if not check_api_key():
+        return jsonify({"message": "Invalid API Key"}), 401
+
+    data = request.json or {}
+    email = data.get("email")
+    new_password = data.get("new_password")
+
+    if not email or not new_password:
+        return jsonify({"message": "必要なデータが不足しています。"}), 400
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE email = ?;", (email,)).fetchone()
+    if not user:
+        conn.close()
+        return jsonify({"message": "ユーザーが見つかりません。"}), 404
+
+    conn.execute("UPDATE users SET password = ? WHERE email = ?;", (new_password, email))
+    conn.commit()
+    conn.close()
+    
+    print(f"[DB SUCCESS] パスワード再設定完了: {email}")
+    return jsonify({"message": "Password updated successfully"}), 200
+
 # ===============================================================
-# 【新規】ログインステータス取得 API (GET /api/v1/login-status)
+# 4. ログインステータス取得 API (GET /api/v1/login-status)
 # ===============================================================
 @app.route('/api/v1/login-status', methods=['GET'])
 def get_login_status():
     if not check_api_key():
         return jsonify({"message": "Invalid API Key"}), 401
 
-    # クエリパラメータからユーザーID（email）を取得
     email = request.args.get("user_id")
     if not email:
         return jsonify({"message": "user_idが必要です。"}), 400
@@ -161,16 +178,9 @@ def get_login_status():
         }), 200
     else:
         return jsonify({"login_days": 0, "input_today_flag": False}), 200
-    
-    conn.execute("UPDATE users SET password = ? WHERE email = ?;", (new_password, email))
-    conn.commit()
-    conn.close()
-    
-    print(f"[DB SUCCESS] パスワード再設定完了: {email}")
-    return jsonify({"message": "Password updated successfully"}), 200
 
 # ===============================================================
-# 【新規】日次記録保存 API (POST /api/v1/daily-record)
+# 5. 日次記録保存 API (POST /api/v1/daily-record)
 # ===============================================================
 @app.route('/api/v1/daily-record', methods=['POST'])
 def save_daily_record():
@@ -179,7 +189,7 @@ def save_daily_record():
 
     data = request.json or {}
     email = data.get("user_id")
-    record_date = data.get("record_date")  # 形式: "2026-6-22" や "2026-06-22" などフロントに合わせる
+    record_date = data.get("record_date")
     mood = data.get("mood")
     condition = data.get("condition")
     outing = data.get("outing")
@@ -193,14 +203,12 @@ def save_daily_record():
 
     conn = get_db_connection()
     try:
-        # すでに同じ日のデータがあれば上書き(REPLACE)、なければ挿入
         conn.execute("""
             INSERT OR REPLACE INTO daily_records 
             (email, record_date, mood, condition, outing, purpose, sleep, bed_time, wake_time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (email, record_date, mood, condition, outing, purpose, sleep, bed_time, wake_time))
         
-        # 💡鈴木連動ロジック：日次入力が完了したら、ログイン管理テーブルの input_today_flag を 1 に更新する
         conn.execute("UPDATE login_management SET input_today_flag = 1 WHERE email = ?;", (email,))
         
         conn.commit()
@@ -213,7 +221,7 @@ def save_daily_record():
         conn.close()
 
 # ===============================================================
-# 【新規】日次記録一覧取得 API (GET /api/v1/daily-records)
+# 6. 日次記録一覧取得 API (GET /api/v1/daily-records)
 # ===============================================================
 @app.route('/api/v1/daily-records', methods=['GET'])
 def get_daily_records():
@@ -225,14 +233,11 @@ def get_daily_records():
         return jsonify({"message": "user_idが必要です。"}), 400
 
     conn = get_db_connection()
-    # 該当ユーザーの全記録を取得
     rows = conn.execute("SELECT * FROM daily_records WHERE email = ?;", (email,)).fetchall()
     conn.close()
 
-    # フロントエンドが扱いやすいようにオブジェクト形式に変換
     records_dict = {}
     for row in rows:
-        # 気分(1〜5)に応じた絵文字の自動マッピング
         mood_num = str(row["mood"])
         emoji_map = {"5": "😆", "4": "😊", "3": "😐", "2": "😞", "1": "😢"}
         emoji = emoji_map.get(mood_num, "😐")
@@ -240,7 +245,7 @@ def get_daily_records():
         records_dict[row["record_date"]] = {
             "mood": mood_num,
             "emoji": emoji,
-            "condition": row["condition"],  # "good", "normal", "bad"
+            "condition": row["condition"],
             "outing": row["outing"],
             "sleep": row["sleep"],
             "times": f"就寝 {row['bed_time']} / 起床 {row['wake_time']}"
@@ -249,5 +254,4 @@ def get_daily_records():
     return jsonify(records_dict), 200
 
 if __name__ == '__main__':
-    # サーバー起動
     app.run(host='127.0.0.1', port=5000, debug=True)
