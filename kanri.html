@@ -9,7 +9,7 @@
 
     <script>
         /*! Chart.js v4.4.1 | (c) 2023 Chart.js Contributors | MIT License */
-        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).Chart=e()}(this,(function(){"use strict";return class{constructor(t,e){this.ctx=t.getContext?t.getContext("2d"):t,this.config=e,this.data=e.data,this.options=e.options,this.init()}init(){const t=this;t.canvas=t.ctx.canvas,t.width=t.canvas.width||parseInt(t.canvas.style.width,10)||300,t.height=t.canvas.height||parseInt(t.canvas.style.height,10)||150,setTimeout((()=>{t.update()}),10)}update(){const t=this,e=t.ctx;e.clearRect(0,0,t.width,t.height);const i=t.options.scales||{},s=i.x||{},a=i.y||{},o=a.min||0,n=a.max||6;const r=t.width-60,h=t.height-60;e.strokeStyle="#e5e7eb",e.lineWidth=1,e.beginPath();for(let t=0;t<=5;t++){const i=40+h*(1-t/5);e.moveTo(50,i),e.lineTo(t+r+50,i)}e.stroke(),e.fillStyle="#6b7280",e.font="10px sans-serif",e.textAlign="right";for(let t=0;t<=5;t++){const i=40+h*(1-t/5);e.fillText(Math.round(o+(n-o)*(t/5)),40,i+4)}t.data.datasets.forEach((i=>{if("line"===i.type){e.strokeStyle=i.borderColor||"#dc2626",e.lineWidth=i.borderWidth||2,e.beginPath();const s=i.data.map((e=>({x:50+r*(e.x-4)/5,y:40+h*(1-(e.y-o)/(n-o))})));s.forEach(((t,i)=>{0===i?e.moveTo(t.x,t.y):e.lineTo(t.x,t.y)})),e.stroke()}else{e.fillStyle=i.backgroundColor||"#4f46e5";const s=i.pointRadius||6;i.data.forEach((i=>{const a=50+r*(i.x-4)/5,o=40+h*(1-(i.y-o)/(n-o));e.beginPath(),e.arc(a,o,s,0,2*Math.PI),e.fill()}))}}))}}}));
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).Chart=e()}(this,(function(){"use strict";return class{constructor(t,e){this.ctx=t.getContext?t.getContext("2d"):t,this.config=e,this.data=e.data,this.options=e.options,this.init()}init(){const t=this;t.canvas=t.ctx.canvas,t.width=t.canvas.width||parseInt(t.canvas.style.width,10)||300,t.height=t.canvas.height||parseInt(t.canvas.style.height,10)||150;t.update()}update(){const t=this,e=t.ctx;e.clearRect(0,0,t.width,t.height);const i=t.options.scales||{},s=i.x||{},a=i.y||{},o=a.min||0,n=a.max||6;const r=t.width-100,h=t.height-80;e.strokeStyle="#e5e7eb",e.lineWidth=1,e.beginPath();for(let t=0;t<=5;t++){const i=40+h*(1-t/5);e.moveTo(60,i),e.lineTo(r+60,i)}e.stroke(),e.fillStyle="#6b7280",e.font="12px sans-serif",e.textAlign="right";for(let t=0;t<=5;t++){const i=40+h*(1-t/5);e.fillText(Math.round(o+(n-o)*(t/5)),50,i+4)}const c=t.data.datasets[0].data;e.fillStyle="rgba(79, 70, 229, 0.7)";c.forEach((t=>{const i=60+r*(t.x-4)/8,s=40+h*(1-(t.y-o)/(n-o));e.beginPath(),e.arc(i,s,6,0,2*Math.PI),e.fill()}));const d=t.data.datasets[1].data;if(d&&d.length>=2){e.strokeStyle="rgba(220, 38, 38, 0.8)",e.lineWidth=3,e.beginPath();const t=60+r*(d[0].x-4)/8,i=40+h*(1-(d[0].y-o)/(n-o)),s=60+r*(d[1].x-4)/8,a=40+h*(1-(d[1].y-o)/(n-o));e.moveTo(t,i),e.lineTo(s,a),e.stroke()}e.fillStyle="#6b7280",e.font="11px sans-serif",e.textAlign="center";for(let t=4;t<=12;t+=2){const i=60+r*(t-4)/8;e.fillText(t+"時間",i,t.canvas?h+60:h+55)}}}}));
     </script>
 
     <style>
@@ -19,8 +19,12 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .card { background: white; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .card-highlight { border: 2px solid #4f46e5; }
+        
+        .user-selector-box { background: linear-gradient(135deg, #4f46e5, #3730a3); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+        .user-select { background: white; color: #1f2937; font-size: 1rem; font-weight: bold; padding: 10px 20px; border-radius: 6px; border: none; outline: none; cursor: pointer; min-width: 280px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
         .num { font-size: 2rem; font-weight: bold; margin-top: 10px; }
-        .chart-container { background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; height: 320px; margin-bottom: 30px; }
+        .chart-container { background: white; padding: 25px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e5e7eb; }
         th { background-color: #f9fafb; color: #6b7280; font-size: 0.75rem; text-transform: uppercase; }
@@ -42,6 +46,18 @@
     </header>
 
     <div class="container">
+        <div class="user-selector-box">
+            <div>
+                <div style="font-size: 0.9rem; opacity: 0.85;">分析対象ユーザーの選択</div>
+                <div style="font-size: 1.1rem; font-weight: bold; margin-top: 2px;">データを閲覧する患者・利用者を選択してください</div>
+            </div>
+            <div>
+                <select id="userDropdown" class="user-select" onchange="handleUserChange()">
+                    <option value="">ユーザーをロード中...</option>
+                </select>
+            </div>
+        </div>
+
         <div class="grid">
             <div class="card">
                 <div style="color: #6b7280; font-size: 0.85rem;">分析データ総数</div>
@@ -58,9 +74,9 @@
         </div>
 
         <div class="chart-container">
-            <h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">睡眠時間と気分の相関分析</h3>
-            <div style="height: 260px; position: relative;">
-                <canvas id="correlationChart" width="1100" height="260"></canvas>
+            <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #1f2937;">📊 睡眠時間と気分の相関グラフ</h3>
+            <div style="position: relative; background: #fafafa; border: 1px dashed #e5e7eb; border-radius: 6px; padding: 10px;">
+                <canvas id="correlationChart" width="1100" height="300"></canvas>
             </div>
         </div>
 
@@ -80,7 +96,7 @@
                 </thead>
                 <tbody id="data-table-body">
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">DBからデータをロードしています...</td>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">ユーザーを選択してください</td>
                     </tr>
                 </tbody>
             </table>
@@ -88,7 +104,8 @@
     </div>
 
     <script>
-        let activeData = [];
+        let allRecords = []; 
+        let userMap = {};    
         let chart = null;
 
         async function loadDatabaseAutomated() {
@@ -104,38 +121,71 @@
                 const SQL = await initSqlJs(config);
                 const db = new SQL.Database(u8);
 
-                const tableName = "daily_records";
+                // 🛡️ 修正点1: userテーブルからの名前取得でエラーが出ても絶対にクラッシュさせない
+                try {
+                    // userテーブルのカラム名がズレている可能性を考慮し、まずはPRAGMAでカラムを確認
+                    const uColRes = db.exec("PRAGMA table_info(user)");
+                    if (uColRes.length > 0 && uColRes[0].values) {
+                        const uCols = uColRes[0].values.map(c => c[1]);
+                        const uEmail = uCols.find(c => c.includes('email')) || uCols[0];
+                        const uName = uCols.find(c => c.includes('name')) || uCols[1];
+                        
+                        const userRes = db.exec(`SELECT ${uEmail}, ${uName} FROM user`);
+                        if (userRes.length > 0 && userRes[0].values) {
+                            userRes[0].values.forEach(row => {
+                                userMap[String(row[0]).trim()] = String(row[1]);
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.log("⚠️ userテーブルの解析に失敗しました。emailベースで進行します:", e);
+                }
 
-                // 🎯 スクリーンショットから判明した、確定の正しいカラム名たち
+                const tableName = "daily_records";
                 const dateCol  = "record_date";
                 const startCol = "bed_time";
                 const endCol   = "wake_time";
                 const moodCol  = "mood";
+                const emailCol = "email";
 
-                // SQLを実行してデータを取得
-                const query = `SELECT ${dateCol}, ${startCol}, ${endCol}, ${moodCol} FROM ${tableName} ORDER BY ${dateCol} DESC`;
+                const query = `SELECT ${dateCol}, ${startCol}, ${endCol}, ${moodCol}, ${emailCol} FROM ${tableName} ORDER BY ${dateCol} DESC`;
                 const res = db.exec(query);
 
                 if (res.length === 0 || !res[0].values) throw new Error("データが空です。");
 
-                const rows = res[0].values;
-                
-                // データを配列にマッピング
-                activeData = rows.map(row => {
-                    const calcSleep = calculateSleepHours(row[1], row[2]);
+                allRecords = res[0].values.map(row => {
                     return {
                         date: row[0] ? String(row[0]) : '不明',
                         start: row[1] ? String(row[1]) : '--:--',
                         end: row[2] ? String(row[2]) : '--:--',
-                        sleepHours: calcSleep,
-                        mood: row[3] ? parseInt(row[3], 10) : 3
+                        sleepHours: calculateSleepHours(row[1], row[2]),
+                        mood: row[3] ? parseInt(row[3], 10) : 3,
+                        email: row[4] ? String(row[4]).trim() : '不明'
                     };
-                }).filter(d => d.sleepHours > 0); // 睡眠時間が正しく計算できたデータのみを対象にする
+                });
+
+                const uniqueEmails = [...new Set(allRecords.map(r => r.email))].filter(email => email !== '不明' && email !== '');
+                
+                const dropdown = document.getElementById('userDropdown');
+                dropdown.innerHTML = ''; 
+
+                uniqueEmails.forEach(email => {
+                    const userName = userMap[email] || "ユーザー"; // 名前が見つからない場合は「ユーザー」と仮定
+                    const option = document.createElement('option');
+                    option.value = email;
+                    option.textContent = `${userName} (${email})`;
+                    dropdown.appendChild(option);
+                });
 
                 badge.className = "badge badge-success";
                 badge.textContent = `同期済 (${tableName})`;
                 
-                updateDashboard();
+                if(uniqueEmails.length > 0) {
+                    dropdown.value = uniqueEmails[0];
+                    handleUserChange();
+                } else {
+                    document.getElementById('data-table-body').innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: red;">有効なユーザーのメールアドレスがデータ内に見つかりません。</td></tr>`;
+                }
 
             } catch (error) {
                 console.error("エラー詳細:", error);
@@ -146,69 +196,49 @@
             }
         }
 
-        // 時間計算ロジック
+        function handleUserChange() {
+            const selectedEmail = document.getElementById('userDropdown').value;
+            const filteredData = allRecords.filter(r => r.email === selectedEmail && r.sleepHours > 0);
+            updateDashboard(filteredData);
+        }
+
         function calculateSleepHours(start, end) {
             if (!start || !end) return 0;
             try {
                 const timeRegex = /(\d{1,2}):(\d{2})/;
                 const startMatch = String(start).match(timeRegex);
                 const endMatch = String(end).match(timeRegex);
-                
                 if (!startMatch || !endMatch) return 0;
-
                 const sHour = parseInt(startMatch[1], 10);
                 const sMin = parseInt(startMatch[2], 10);
                 const eHour = parseInt(endMatch[1], 10);
                 const eMin = parseInt(endMatch[2], 10);
-
                 let startMin = sHour * 60 + sMin;
                 let endMin = eHour * 60 + eMin;
-                
-                if (endMin <= startMin) endMin += 24 * 60; // 日を跨いだ計算
-                
+                if (endMin <= startMin) endMin += 24 * 60;
                 const diffHours = parseFloat(((endMin - startMin) / 60).toFixed(1));
                 return isNaN(diffHours) ? 0 : diffHours;
-            } catch(e) {
-                return 0;
-            }
+            } catch(e) { return 0; }
         }
 
-        // 回帰分析・R²（決定係数）計算
         function calculateRegressionJS(data) {
             if (data.length < 2) return { intercept: 0, slope: 0, r2: 0 };
-            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-            const n = data.length;
-
-            data.forEach(d => {
-                sumX += d.sleepHours;
-                sumY += d.mood;
-                sumXY += (d.sleepHours * d.mood);
-                sumXX += (d.sleepHours * d.sleepHours);
-            });
-
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0, n = data.length;
+            data.forEach(d => { sumX += d.sleepHours; sumY += d.mood; sumXY += (d.sleepHours * d.mood); sumXX += (d.sleepHours * d.sleepHours); });
             const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX || 1);
             const intercept = (sumY - slope * sumX) / n;
-
             const yMean = sumY / n;
             let ssTot = 0, ssRes = 0;
-            data.forEach(d => {
-                ssTot += Math.pow(d.mood - yMean, 2);
-                ssRes += Math.pow(d.mood - (intercept + slope * d.sleepHours), 2);
-            });
-
+            data.forEach(d => { ssTot += Math.pow(d.mood - yMean, 2); ssRes += Math.pow(d.mood - (intercept + slope * d.sleepHours), 2); });
             return { intercept, slope, r2: ssTot === 0 ? 0 : Math.max(0, Math.min(1, 1 - (ssRes / ssTot))) };
         }
 
-        // グラフ更新
         function updateChart(data, regression) {
             const ctx = document.getElementById('correlationChart');
             const scatterData = data.map(d => ({ x: d.sleepHours, y: d.mood }));
-            const xHours = data.map(d => d.sleepHours);
-            const minX = xHours.length ? Math.min(...xHours) - 0.5 : 4;
-            const maxX = xHours.length ? Math.max(...xHours) + 0.5 : 9;
             const lineData = [
-                { x: minX, y: regression.intercept + regression.slope * minX },
-                { x: maxX, y: regression.intercept + regression.slope * maxX }
+                { x: 4, y: regression.intercept + regression.slope * 4 },
+                { x: 12, y: regression.intercept + regression.slope * 12 }
             ];
 
             if (chart) {
@@ -220,35 +250,31 @@
                     type: 'scatter',
                     data: {
                         datasets: [
-                            { label: '実際のデータ（睡眠 vs 気分）', data: scatterData, backgroundColor: 'rgba(79, 70, 229, 0.7)', pointRadius: 6 },
-                            { label: '傾向線', data: lineData, type: 'line', borderColor: 'rgba(220, 38, 38, 0.8)', borderWidth: 2, fill: false, pointRadius: 0 }
+                            { label: '実際のデータ（睡眠 vs 気分）', data: scatterData },
+                            { label: '傾向線', data: lineData }
                         ]
                     },
                     options: {
-                        scales: {
-                            x: { min: 4, max: 12 },
-                            y: { min: 0, max: 6 }
-                        }
+                        scales: { x: { min: 4, max: 12 }, y: { min: 0, max: 6 } }
                     }
                 });
             }
         }
 
-        // 画面の数字やテーブルを更新
-        function updateDashboard() {
-            const count = activeData.length;
-            const avgMood = count > 0 ? (activeData.reduce((sum, d) => sum + d.mood, 0) / count).toFixed(1) : '0.0';
-            const regression = calculateRegressionJS(activeData);
+        function updateDashboard(userData) {
+            const count = userData.length;
+            const avgMood = count > 0 ? (userData.reduce((sum, d) => sum + d.mood, 0) / count).toFixed(1) : '0.0';
+            const regression = calculateRegressionJS(userData);
             
             document.getElementById('summary-count').textContent = `${count} 件`;
             document.getElementById('summary-avg-mood').textContent = `${avgMood} / 5.0`;
             document.getElementById('summary-r2').textContent = regression.r2.toFixed(3);
             
-            updateChart(activeData, regression);
+            updateChart(userData, regression);
             
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
-            activeData.forEach(d => {
+            userData.forEach(d => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${d.date}</td>
