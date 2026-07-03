@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -12,35 +12,27 @@
 <body class="bg-gray-50 text-gray-800 font-sans antialiased">
 
     <header class="bg-indigo-900 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">リハビリ支援システム</h1>
-                <p class="text-sm text-indigo-200 mt-1">管理者用データ解析ダッシュボード（睡眠×気分分析版）</p>
+                <p class="text-sm text-indigo-200 mt-1">管理者用データ解析ダッシュボード（実DB自動同期版）</p>
             </div>
-            <div class="bg-indigo-800 p-3 rounded-lg border border-indigo-700 shadow-inner">
-                <label class="block text-xs font-semibold text-indigo-200 mb-1">実DB連携 (rehab_app.dbを選択):</label>
-                <input type="file" id="db-file-input" accept=".db,.sqlite,.sqlite3" class="text-xs text-indigo-100 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 file:cursor-pointer">
+            <div id="connection-badge" class="bg-indigo-800 px-3 py-1.5 rounded-full text-xs font-semibold text-indigo-200 border border-indigo-700">
+                DB接続確認中...
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
 
-        <div id="datasource-status" class="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center justify-between">
-            <div class="flex items-center space-x-2 text-sm">
-                <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span id="status-text">現在は<strong>デモ用の架空データ</strong>を表示しています。右上から rehab_app.db を読み込んでください。</span>
-            </div>
-        </div>
-
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <p class="text-sm font-medium text-gray-500 truncate">分析データ総数</p>
-                <p id="summary-count" class="mt-2 text-3xl font-semibold text-gray-900">0 件</p>
+                <p id="summary-count" class="mt-2 text-3xl font-semibold text-gray-900">-- 件</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <p class="text-sm font-medium text-gray-500 truncate">平均 気分スコア</p>
-                <p id="summary-avg-mood" class="mt-2 text-3xl font-semibold text-indigo-600">0.0 / 5.0</p>
+                <p id="summary-avg-mood" class="mt-2 text-3xl font-semibold text-indigo-600">-- / 5.0</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 ring-2 ring-indigo-500">
                 <p class="text-sm font-medium text-gray-500 truncate">モデル寄与率 (決定係数 R²)</p>
@@ -51,7 +43,7 @@
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">睡眠時間と気分の相関分析</h3>
-            <p class="text-xs text-gray-500 mb-4">ドットが右上がりに並ぶほど「睡眠が長いと気分が良い」、右下がりに並ぶほど「睡眠が短い方が気分が良い」傾向を示します。直線は統計的な傾向線（回帰直線）です。</p>
+            <p class="text-xs text-gray-500 mb-4">実際のDBデータから算出した相関関係と、統計的な傾向線（回帰直線）を表示しています。</p>
             <div class="h-80 relative">
                 <canvas id="correlationChart"></canvas>
             </div>
@@ -59,20 +51,23 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-6 border-b border-gray-200 bg-gray-50">
-                <h3 class="text-lg font-semibold text-gray-900" id="table-title">ライフログ履歴データ（デモ用データ）</h3>
+                <h3 class="text-lg font-semibold text-gray-900">rehab_app.db 同期データ履歴</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">就寝時間</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">起床時間</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">睡眠時間 (算出)</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-indigo-600 font-bold uppercase tracking-wider">今日の気分 (目的変数: 1-5)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">日付</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">就寝時間</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">起床時間</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">睡眠時間 (算出)</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-indigo-600 font-bold uppercase">今日の気分 (目的変数: 1-5)</th>
                         </tr>
                     </thead>
                     <tbody id="data-table-body" class="bg-white divide-y divide-gray-200 text-sm">
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-400">DBからデータを読み込み中...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -80,72 +75,65 @@
     </main>
 
     <script>
-        // デモ用の仮データ
-        let activeData = [
-            { date: '2026-07-02', start: '23:00', end: '06:30', sleepHours: 7.5, mood: 5 },
-            { date: '2026-07-01', start: '22:30', end: '06:00', sleepHours: 7.5, mood: 4 },
-            { date: '2026-06-30', start: '00:00', end: '05:30', sleepHours: 5.5, mood: 2 },
-            { date: '2026-06-29', start: '23:30', end: '07:00', sleepHours: 7.5, mood: 4 },
-            { date: '2026-06-28', start: '01:00', end: '06:00', sleepHours: 5.0, mood: 1 },
-            { date: '2026-06-27', start: '22:00', end: '06:00', sleepHours: 8.0, mood: 5 },
-            { date: '2026-06-26', start: '23:00', end: '06:00', sleepHours: 7.0, mood: 3 }
-        ];
-
+        let activeData = [];
         let chart = null;
 
-        // DBファイルの読み込み
-        document.getElementById('db-file-input').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function() {
-                const Uints = new Uint8Array(reader.result);
-                const config = { locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/${filename}` };
+        // 1. 画面起動時に自動で「rehab_app.db」を読み込む関数
+        async function loadDatabaseAutomated() {
+            const badge = document.getElementById('connection-badge');
+            try {
+                // 同じフォルダにある rehab_app.db を自動で取得
+                const response = await fetch('rehab_app.db');
+                if (!response.ok) throw new Error('rehab_app.db が見つからないか、ローカルサーバー経由で開かれていません。');
                 
-                initSqlJs(config).then(function(SQL) {
-                    try {
-                        const db = new SQL.Database(Uints);
+                const buffer = await response.arrayBuffer();
+                const Uints = new Uint8Array(buffer);
+                
+                // sql.jsの初期化
+                const config = { locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/${filename}` };
+                const SQL = await initSqlJs(config);
+                const db = new SQL.Database(Uints);
 
-                        // 【★重要：DBの環境に合わせて修正してください】
-                        // テーブル名「user_logs」、カラム名「date, sleep_start, sleep_end, mood_score」と仮定しています。
-                        const tableName = "user_logs"; 
-                        const query = `SELECT date, sleep_start, sleep_end, mood_score FROM ${tableName} ORDER BY date DESC`;
-                        
-                        const res = db.exec(query);
+                // 【★DB構造に合わせてここを修正】
+                // テーブル名：user_logs、カラム名：date, sleep_start, sleep_end, mood_score と仮定
+                const tableName = "user_logs"; 
+                const query = `SELECT date, sleep_start, sleep_end, mood_score FROM ${tableName} ORDER BY date DESC`;
+                
+                const res = db.exec(query);
 
-                        if (res.length === 0) {
-                            alert("データが見つかりませんでした。テーブル名やカラム名を確認してください。");
-                            return;
-                        }
+                if (res.length === 0) {
+                    badge.className = "bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-300";
+                    badge.textContent = "データ空";
+                    alert("DBは開けましたが、テーブル内にデータがありません。");
+                    return;
+                }
 
-                        const rows = res[0].values;
-                        activeData = rows.map(row => {
-                            return {
-                                date: row[0],
-                                start: row[1],
-                                end: row[2],
-                                sleepHours: calculateSleepHours(row[1], row[2]),
-                                mood: parseInt(row[3], 10)
-                            };
-                        });
+                // データを配列に格納
+                const rows = res[0].values;
+                activeData = rows.map(row => ({
+                    date: row[0],
+                    start: row[1],
+                    end: row[2],
+                    sleepHours: calculateSleepHours(row[1], row[2]),
+                    mood: parseInt(row[3], 10)
+                }));
 
-                        // UI表示切り替え
-                        const statusBox = document.getElementById('datasource-status');
-                        statusBox.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center justify-between";
-                        document.getElementById('status-text').innerHTML = `正常に連動中: <strong>${file.name}</strong> からデータを読み込みました。`;
-                        document.getElementById('table-title').textContent = `ライフログ履歴データ（${file.name} 同期データ）`;
+                // 接続バッジを「同期中」に更新
+                badge.className = "bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-300 flex items-center gap-1.5";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> rehab_app.db 同期済`;
 
-                        updateDashboard();
+                // 解析と描画の実行
+                updateDashboard();
 
-                    } catch (error) {
-                        console.error(error);
-                        alert("DB解析エラー: " + error.message);
-                    }
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        });
+            } catch (error) {
+                console.error(error);
+                badge.className = "bg-red-100 text-red-800 px-3 py-1.5 rounded-full text-xs font-bold border border-red-300";
+                badge.textContent = "DB接続エラー";
+                
+                const tbody = document.getElementById('data-table-body');
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500 font-medium">【エラー】DBの自動読み込みに失敗しました。<br><span class="text-xs text-gray-400">原因: ${error.message}</span></td></tr>`;
+            }
+        }
 
         function calculateSleepHours(start, end) {
             if (!start || !end) return 0;
@@ -157,27 +145,21 @@
             return parseFloat(((endMin - startMin) / 60).toFixed(1));
         }
 
-        // 回帰分析（単回帰）
         function calculateRegression(data) {
             if (data.length < 2) return { intercept: 0, slope: 0, r2: 0 };
-            
             const X = data.map(d => [1, d.sleepHours]);
             const Y = data.map(d => [d.mood]);
-
             try {
                 const Xt = math.transpose(X);
                 const XtX = math.multiply(Xt, X);
                 const XtX_inv = math.inv(XtX);
                 const XtY = math.multiply(Xt, Y);
                 const B = math.multiply(XtX_inv, XtY);
-
-                const intercept = B[0][0]; // 切片
-                const slope = B[1][0];     // 傾き（睡眠の寄与）
-
+                const intercept = B[0][0];
+                const slope = B[1][0];
                 const yValues = Y.map(r => r[0]);
                 const yMean = math.mean(yValues);
                 let ssTot = 0, ssRes = 0;
-
                 for (let i = 0; i < data.length; i++) {
                     const yActual = yValues[i];
                     const yPred = intercept + slope * data[i].sleepHours;
@@ -191,18 +173,12 @@
             }
         }
 
-        // 散布図と回帰直線の描画
         function updateChart(data, regression) {
             const ctx = document.getElementById('correlationChart').getContext('2d');
-            
-            // 散布図用のデータプロット
             const scatterData = data.map(d => ({ x: d.sleepHours, y: d.mood }));
-
-            // 回帰直線を描くための2点を計算（端から端まで線を引く）
             const xHours = data.map(d => d.sleepHours);
             const minX = Math.min(...xHours) - 0.5;
             const maxX = Math.max(...xHours) + 0.5;
-            
             const lineData = [
                 { x: minX, y: regression.intercept + regression.slope * minX },
                 { x: maxX, y: regression.intercept + regression.slope * maxX }
@@ -217,29 +193,15 @@
                     type: 'scatter',
                     data: {
                         datasets: [
-                            {
-                                label: '実際のデータ（睡眠時間 vs 気分）',
-                                data: scatterData,
-                                backgroundColor: 'rgba(79, 70, 229, 0.7)',
-                                pointRadius: 6,
-                                pointHoverRadius: 8
-                            },
-                            {
-                                label: '傾向線（回帰直線）',
-                                data: lineData,
-                                type: 'line',
-                                borderColor: 'rgba(220, 38, 38, 0.8)',
-                                borderWidth: 2,
-                                fill: false,
-                                pointRadius: 0 // 線だけ見せる
-                            }
+                            { label: '実際のデータ（睡眠 vs 気分）', data: scatterData, backgroundColor: 'rgba(79, 70, 229, 0.7)', pointRadius: 6 },
+                            { label: '傾向線', data: lineData, type: 'line', borderColor: 'rgba(220, 38, 38, 0.8)', borderWidth: 2, fill: false, pointRadius: 0 }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         scales: {
-                            x: { title: { display: true, text: '睡眠時間 (時間)' }, min: 4, max: 10 },
+                            x: { title: { display: true, text: '睡眠時間 (時間)' } },
                             y: { title: { display: true, text: '気分スコア (1-5)' }, min: 0, max: 6, ticks: { stepSize: 1 } }
                         }
                     }
@@ -274,8 +236,9 @@
             });
         }
 
+        // 起動時に自動実行
         window.onload = function() {
-            updateDashboard();
+            loadDatabaseAutomated();
         };
     </script>
 </body>
