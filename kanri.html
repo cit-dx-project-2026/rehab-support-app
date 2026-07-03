@@ -9,10 +9,11 @@
 
     <script>
         /*! Chart.js v4.4.1 | (c) 2023 Chart.js Contributors | MIT License */
-        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).Chart=e()}(this,(function(){"use strict";return class{constructor(t,e){this.ctx=t.getContext?t.getContext("2d"):t,this.config=e,this.data=e.data,this.options=e.options,this.init()}init(){const t=this;t.canvas=t.ctx.canvas,t.width=t.canvas.width||parseInt(t.canvas.style.width,10)||300,t.height=t.canvas.height||parseInt(t.canvas.style.height,10)||150;t.update()}update(){const t=this,e=t.ctx;e.clearRect(0,0,t.width,t.height);const i=t.options.scales||{},s=i.x||{},a=i.y||{},o=0,n=6; // 縦軸は0〜6で固定
-            const r=t.width-100,h=t.height-80;e.strokeStyle="#e5e7eb",e.lineWidth=1,e.beginPath();for(let t=0;t<=6;t++){const i=40+h*(1-t/6);e.moveTo(60,i),e.lineTo(r+60,i)}e.stroke(),e.fillStyle="#6b7280",e.font="12px sans-serif",e.textAlign="right";for(let t=0;t<=6;t++){const i=40+h*(1-t/6);e.fillText(t,50,i+4)}const c=t.data.datasets[0].data;e.fillStyle="rgba(79, 70, 229, 0.7)";c.forEach((t=>{// 🎯 縦軸(y)の割合計算を (t.y / 6) に修正してズレを完全解消
-                const i=60+r*(t.x-4)/8;const s=40+h*(1-(t.y/6));e.beginPath(),e.arc(i,s,6,0,2*Math.PI),e.fill()}));const d=t.data.datasets[1].data;if(d&&d.length>=2){e.strokeStyle="rgba(220, 38, 38, 0.8)",e.lineWidth=3,e.beginPath();// 🎯 傾向線の縦軸計算も同様に完全一致させました
-                const t=60+r*(d[0].x-4)/8,i=40+h*(1-(d[0].y/6)),s=60+r*(d[1].x-4)/8,a=40+h*(1-(d[1].y/6));e.moveTo(t,i),e.lineTo(s,a),e.stroke()}e.fillStyle="#6b7280",e.font="11px sans-serif",e.textAlign="center";for(let t=4;t<=12;t+=2){const i=60+r*(t-4)/8;e.fillText(t+"時間",i,h+55)}}}}));
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).Chart=e()}(this,(function(){"use strict";return class{constructor(t,e){this.ctx=t.getContext?t.getContext("2d"):t,this.config=e,this.data=e.data,this.options=e.options,this.init()}init(){const t=this;t.canvas=t.ctx.canvas,t.width=t.canvas.width||parseInt(t.canvas.style.width,10)||300,t.height=t.canvas.height||parseInt(t.canvas.style.height,10)||150;t.update()}update(){const t=this,e=t.ctx;e.clearRect(0,0,t.width,t.height);const i=t.options.scales||{},s=i.x||{},a=i.y||{},o=0,n=6; 
+            const r=t.width-100,h=t.height-80;e.strokeStyle="#e5e7eb",e.lineWidth=1,e.beginPath();for(let t=0;t<=6;t++){const i=40+h*(1-t/6);e.moveTo(60,i),e.lineTo(r+60,i)}e.stroke(),e.fillStyle="#6b7280",e.font="12px sans-serif",e.textAlign="right";for(let t=0;t<=6;t++){const i=40+h*(1-t/6);e.fillText(t,50,i+4)}const c=t.data.datasets[0].data;e.fillStyle="rgba(79, 70, 229, 0.7)";c.forEach((t=>{// 🎯 修正：横軸を0〜14時間の幅（14分割）としてドットの位置を正確に計算
+                const i=60+r*(t.x/14);const s=40+h*(1-(t.y/6));e.beginPath(),e.arc(i,s,6,0,2*Math.PI),e.fill()}));const d=t.data.datasets[1].data;if(d&&d.length>=2){e.strokeStyle="rgba(220, 38, 38, 0.8)",e.lineWidth=3,e.beginPath();// 🎯 修正：傾向線も0〜14時間の幅に合わせて正確に描画
+                const t=60+r*(d[0].x/14),i=40+h*(1-(d[0].y/6)),s=60+r*(d[1].x/14),a=40+h*(1-(d[1].y/6));e.moveTo(t,i),e.lineTo(s,a),e.stroke()}e.fillStyle="#6b7280",e.font="11px sans-serif",e.textAlign="center";// 🎯 修正：目盛りを0時間から14時間まで2時間刻みで並べるよう変更
+            for(let t=0;t<=14;t+=2){const i=60+r*(t/14);e.fillText(t+"時間",i,h+55)}}}}));
     </script>
 
     <style>
@@ -84,7 +85,7 @@
 
         <div class="card" style="padding: 0; overflow-x: auto;">
             <div style="padding: 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                <h3 style="margin: 0; font-size: 1.1rem;">daily_records 同期データ履歴</h3>
+                <h3 style="margin: 0; font-size: 1.1rem;">同期データ履歴</h3>
             </div>
             <table>
                 <thead>
@@ -224,9 +225,10 @@
         function updateChart(data, regression) {
             const ctx = document.getElementById('correlationChart');
             const scatterData = data.map(d => ({ x: d.sleepHours, y: d.mood }));
+            // 🎯 傾向線の描画を0時間から14時間の範囲全体に拡張
             const lineData = [
-                { x: 4, y: regression.intercept + regression.slope * 4 },
-                { x: 12, y: regression.intercept + regression.slope * 12 }
+                { x: 0, y: regression.intercept + regression.slope * 0 },
+                { x: 14, y: regression.intercept + regression.slope * 14 }
             ];
 
             if (chart) {
@@ -243,7 +245,8 @@
                         ]
                     },
                     options: {
-                        scales: { x: { min: 4, max: 12 }, y: { min: 0, max: 6 } }
+                        // 🎯 グラフの描画表示範囲オプションも0〜14に広げました
+                        scales: { x: { min: 0, max: 14 }, y: { min: 0, max: 6 } }
                     }
                 });
             }
