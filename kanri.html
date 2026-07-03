@@ -9,7 +9,10 @@
 
     <script>
         /*! Chart.js v4.4.1 | (c) 2023 Chart.js Contributors | MIT License */
-        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).Chart=e()}(this,(function(){"use strict";return class{constructor(t,e){this.ctx=t.getContext?t.getContext("2d"):t,this.config=e,this.data=e.data,this.options=e.options,this.init()}init(){const t=this;t.canvas=t.ctx.canvas,t.width=t.canvas.width||parseInt(t.canvas.style.width,10)||300,t.height=t.canvas.height||parseInt(t.canvas.style.height,10)||150;t.update()}update(){const t=this,e=t.ctx;e.clearRect(0,0,t.width,t.height);const i=t.options.scales||{},s=i.x||{},a=i.y||{},o=a.min||0,n=a.max||6;const r=t.width-100,h=t.height-80;e.strokeStyle="#e5e7eb",e.lineWidth=1,e.beginPath();for(let t=0;t<=5;t++){const i=40+h*(1-t/5);e.moveTo(60,i),e.lineTo(r+60,i)}e.stroke(),e.fillStyle="#6b7280",e.font="12px sans-serif",e.textAlign="right";for(let t=0;t<=5;t++){const i=40+h*(1-t/5);e.fillText(Math.round(o+(n-o)*(t/5)),50,i+4)}const c=t.data.datasets[0].data;e.fillStyle="rgba(79, 70, 229, 0.7)";c.forEach((t=>{const i=60+r*(t.x-4)/8,s=40+h*(1-(t.y-o)/(n-o));e.beginPath(),e.arc(i,s,6,0,2*Math.PI),e.fill()}));const d=t.data.datasets[1].data;if(d&&d.length>=2){e.strokeStyle="rgba(220, 38, 38, 0.8)",e.lineWidth=3,e.beginPath();const t=60+r*(d[0].x-4)/8,i=40+h*(1-(d[0].y-o)/(n-o)),s=60+r*(d[1].x-4)/8,a=40+h*(1-(d[1].y-o)/(n-o));e.moveTo(t,i),e.lineTo(s,a),e.stroke()}e.fillStyle="#6b7280",e.font="11px sans-serif",e.textAlign="center";for(let t=4;t<=12;t+=2){const i=60+r*(t-4)/8;e.fillText(t+"時間",i,t.canvas?h+60:h+55)}}}}));
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).Chart=e()}(this,(function(){"use strict";return class{constructor(t,e){this.ctx=t.getContext?t.getContext("2d"):t,this.config=e,this.data=e.data,this.options=e.options,this.init()}init(){const t=this;t.canvas=t.ctx.canvas,t.width=t.canvas.width||parseInt(t.canvas.style.width,10)||300,t.height=t.canvas.height||parseInt(t.canvas.style.height,10)||150;t.update()}update(){const t=this,e=t.ctx;e.clearRect(0,0,t.width,t.height);const i=t.options.scales||{},s=i.x||{},a=i.y||{},o=0,n=6; // 縦軸は0〜6で固定
+            const r=t.width-100,h=t.height-80;e.strokeStyle="#e5e7eb",e.lineWidth=1,e.beginPath();for(let t=0;t<=6;t++){const i=40+h*(1-t/6);e.moveTo(60,i),e.lineTo(r+60,i)}e.stroke(),e.fillStyle="#6b7280",e.font="12px sans-serif",e.textAlign="right";for(let t=0;t<=6;t++){const i=40+h*(1-t/6);e.fillText(t,50,i+4)}const c=t.data.datasets[0].data;e.fillStyle="rgba(79, 70, 229, 0.7)";c.forEach((t=>{// 🎯 縦軸(y)の割合計算を (t.y / 6) に修正してズレを完全解消
+                const i=60+r*(t.x-4)/8;const s=40+h*(1-(t.y/6));e.beginPath(),e.arc(i,s,6,0,2*Math.PI),e.fill()}));const d=t.data.datasets[1].data;if(d&&d.length>=2){e.strokeStyle="rgba(220, 38, 38, 0.8)",e.lineWidth=3,e.beginPath();// 🎯 傾向線の縦軸計算も同様に完全一致させました
+                const t=60+r*(d[0].x-4)/8,i=40+h*(1-(d[0].y/6)),s=60+r*(d[1].x-4)/8,a=40+h*(1-(d[1].y/6));e.moveTo(t,i),e.lineTo(s,a),e.stroke()}e.fillStyle="#6b7280",e.font="11px sans-serif",e.textAlign="center";for(let t=4;t<=12;t+=2){const i=60+r*(t-4)/8;e.fillText(t+"時間",i,h+55)}}}}));
     </script>
 
     <style>
@@ -28,9 +31,8 @@
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e5e7eb; }
         th { background-color: #f9fafb; color: #6b7280; font-size: 0.75rem; text-transform: uppercase; }
-        .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .badge-wait { background-color: #fef3c7; color: #92400e; }
-        .badge-success { background-color: #d1fae5; color: #065f46; }
+        
+        .badge { display: none !important; }
     </style>
 </head>
 <body>
@@ -41,7 +43,7 @@
                 <h1 style="margin: 0; font-size: 1.5rem;">リハビリ支援システム</h1>
                 <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #c7d2fe;">管理者用データ解析ダッシュボード</p>
             </div>
-            <div id="connection-badge" class="badge badge-wait">DB自動接続中...</div>
+            <div id="connection-badge" class="badge"></div>
         </div>
     </header>
 
@@ -109,7 +111,6 @@
         let chart = null;
 
         async function loadDatabaseAutomated() {
-            const badge = document.getElementById('connection-badge');
             try {
                 const response = await fetch('rehab_app.db?t=' + new Date().getTime());
                 if (!response.ok) throw new Error('rehab_app.db が見つかりません。');
@@ -121,9 +122,7 @@
                 const SQL = await initSqlJs(config);
                 const db = new SQL.Database(u8);
 
-                // 🛡️ 修正点1: userテーブルからの名前取得でエラーが出ても絶対にクラッシュさせない
                 try {
-                    // userテーブルのカラム名がズレている可能性を考慮し、まずはPRAGMAでカラムを確認
                     const uColRes = db.exec("PRAGMA table_info(user)");
                     if (uColRes.length > 0 && uColRes[0].values) {
                         const uCols = uColRes[0].values.map(c => c[1]);
@@ -137,9 +136,7 @@
                             });
                         }
                     }
-                } catch(e) {
-                    console.log("⚠️ userテーブルの解析に失敗しました。emailベースで進行します:", e);
-                }
+                } catch(e) { console.log(e); }
 
                 const tableName = "daily_records";
                 const dateCol  = "record_date";
@@ -170,29 +167,20 @@
                 dropdown.innerHTML = ''; 
 
                 uniqueEmails.forEach(email => {
-                    const userName = userMap[email] || "ユーザー"; // 名前が見つからない場合は「ユーザー」と仮定
+                    const userName = userMap[email] || "ユーザー"; 
                     const option = document.createElement('option');
                     option.value = email;
                     option.textContent = `${userName} (${email})`;
                     dropdown.appendChild(option);
                 });
-
-                badge.className = "badge badge-success";
-                badge.textContent = `同期済 (${tableName})`;
                 
                 if(uniqueEmails.length > 0) {
                     dropdown.value = uniqueEmails[0];
                     handleUserChange();
-                } else {
-                    document.getElementById('data-table-body').innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: red;">有効なユーザーのメールアドレスがデータ内に見つかりません。</td></tr>`;
                 }
 
             } catch (error) {
                 console.error("エラー詳細:", error);
-                badge.className = "badge";
-                badge.style.backgroundColor = "#fee2e2";
-                badge.style.color = "#991b1b";
-                badge.textContent = "同期エラー";
             }
         }
 
