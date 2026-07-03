@@ -66,7 +66,7 @@
 
         <div class="card" style="padding: 0; overflow-x: auto;">
             <div style="padding: 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                <h3 style="margin: 0; font-size: 1.1rem;">rehab_app.db 自動同期データ履歴</h3>
+                <h3 style="margin: 0; font-size: 1.1rem;">daily_records 同期データ履歴</h3>
             </div>
             <table>
                 <thead>
@@ -95,51 +95,42 @@
             const badge = document.getElementById('connection-badge');
             try {
                 const response = await fetch('rehab_app.db?t=' + new Date().getTime());
-                if (!response.ok) throw new Error('rehab_app.db が見つかりません。HTMLと同じフォルダに置いてください。');
+                if (!response.ok) throw new Error('rehab_app.db が見つかりません。');
                 
                 const buffer = await response.arrayBuffer();
                 const u8 = new Uint8Array(buffer);
                 
-                const config = { 
-                    locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/${filename}` 
-                };
-                
+                const config = { locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/${filename}` };
                 const SQL = await initSqlJs(config);
                 const db = new SQL.Database(u8);
 
-                // 自動テーブル探索
-                const tableFindQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
-                const tableRes = db.exec(tableFindQuery);
-                
-                if (tableRes.length === 0 || !tableRes[0].values || tableRes[0].values.length === 0) {
-                    throw new Error("rehab_app.db の中にテーブルが見つかりませんでした。");
-                }
-                
-                const tableName = tableRes[0].values[0][0];
+                const tableName = "daily_records";
 
-                const colRes = db.exec(`PRAGMA table_info(${tableName})`);
-                const columns = colRes[0].values.map(c => c[1]);
-                
-                const dateCol = columns.find(c => c.includes('date') || c.includes('日付')) || columns[0];
-                const startCol = columns.find(c => c.includes('start') || c.includes('sleep') || c.includes('就寝')) || columns[1];
-                const endCol = columns.find(c => c.includes('end') || c.includes('wake') || c.includes('起床')) || columns[2];
-                const moodCol = columns.find(c => c.includes('mood') || c.includes('score') || c.includes('気分')) || columns[3];
+                // 🎯 スクリーンショットから判明した、確定の正しいカラム名たち
+                const dateCol  = "record_date";
+                const startCol = "bed_time";
+                const endCol   = "wake_time";
+                const moodCol  = "mood";
 
+                // SQLを実行してデータを取得
                 const query = `SELECT ${dateCol}, ${startCol}, ${endCol}, ${moodCol} FROM ${tableName} ORDER BY ${dateCol} DESC`;
                 const res = db.exec(query);
 
-                if (res.length === 0 || !res[0].values) {
-                    throw new Error(`テーブル「${tableName}」からのデータ抽出に失敗しました。`);
-                }
+                if (res.length === 0 || !res[0].values) throw new Error("データが空です。");
 
                 const rows = res[0].values;
-                activeData = rows.map(row => ({
-                    date: row[0] ? String(row[0]) : '不明',
-                    start: row[1] ? String(row[1]) : '00:00',
-                    end: row[2] ? String(row[2]) : '00:00',
-                    sleepHours: calculateSleepHours(row[1], row[2]),
-                    mood: row[3] ? parseInt(row[3], 10) : 3
-                }));
+                
+                // データを配列にマッピング
+                activeData = rows.map(row => {
+                    const calcSleep = calculateSleepHours(row[1], row[2]);
+                    return {
+                        date: row[0] ? String(row[0]) : '不明',
+                        start: row[1] ? String(row[1]) : '--:--',
+                        end: row[2] ? String(row[2]) : '--:--',
+                        sleepHours: calcSleep,
+                        mood: row[3] ? parseInt(row[3], 10) : 3
+                    };
+                }).filter(d => d.sleepHours > 0); // 睡眠時間が正しく計算できたデータのみを対象にする
 
                 badge.className = "badge badge-success";
                 badge.textContent = `同期済 (${tableName})`;
@@ -148,34 +139,41 @@
 
             } catch (error) {
                 console.error("エラー詳細:", error);
+                badge.className = "badge";
                 badge.style.backgroundColor = "#fee2e2";
                 badge.style.color = "#991b1b";
                 badge.textContent = "同期エラー";
-                
-                document.getElementById('data-table-body').innerHTML = 
-                    `<tr><td colspan="5" style="text-align: center; padding: 40px; color: #dc2626; font-weight: bold;">
-                        【エラー】自動同期に失敗しました。<br>
-                        <span style="font-size:0.85rem; color:#6b7280; font-weight: normal; display:block; margin-top:10px;">
-                            理由: ${error.message}
-                        </span>
-                    </td></tr>`;
             }
         }
 
+        // 時間計算ロジック
         function calculateSleepHours(start, end) {
             if (!start || !end) return 0;
             try {
-                const [sHour, sMin] = String(start).split(':').map(Number);
-                const [eHour, eMin] = String(end).split(':').map(Number);
+                const timeRegex = /(\d{1,2}):(\d{2})/;
+                const startMatch = String(start).match(timeRegex);
+                const endMatch = String(end).match(timeRegex);
+                
+                if (!startMatch || !endMatch) return 0;
+
+                const sHour = parseInt(startMatch[1], 10);
+                const sMin = parseInt(startMatch[2], 10);
+                const eHour = parseInt(endMatch[1], 10);
+                const eMin = parseInt(endMatch[2], 10);
+
                 let startMin = sHour * 60 + sMin;
                 let endMin = eHour * 60 + eMin;
-                if (endMin <= startMin) endMin += 24 * 60;
-                return parseFloat(((endMin - startMin) / 60).toFixed(1));
+                
+                if (endMin <= startMin) endMin += 24 * 60; // 日を跨いだ計算
+                
+                const diffHours = parseFloat(((endMin - startMin) / 60).toFixed(1));
+                return isNaN(diffHours) ? 0 : diffHours;
             } catch(e) {
                 return 0;
             }
         }
 
+        // 回帰分析・R²（決定係数）計算
         function calculateRegressionJS(data) {
             if (data.length < 2) return { intercept: 0, slope: 0, r2: 0 };
             let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
@@ -201,6 +199,7 @@
             return { intercept, slope, r2: ssTot === 0 ? 0 : Math.max(0, Math.min(1, 1 - (ssRes / ssTot))) };
         }
 
+        // グラフ更新
         function updateChart(data, regression) {
             const ctx = document.getElementById('correlationChart');
             const scatterData = data.map(d => ({ x: d.sleepHours, y: d.mood }));
@@ -227,7 +226,7 @@
                     },
                     options: {
                         scales: {
-                            x: { min: 4, max: 9 },
+                            x: { min: 4, max: 12 },
                             y: { min: 0, max: 6 }
                         }
                     }
@@ -235,6 +234,7 @@
             }
         }
 
+        // 画面の数字やテーブルを更新
         function updateDashboard() {
             const count = activeData.length;
             const avgMood = count > 0 ? (activeData.reduce((sum, d) => sum + d.mood, 0) / count).toFixed(1) : '0.0';
