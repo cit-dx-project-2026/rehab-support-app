@@ -42,7 +42,7 @@ async function refreshLoginDays() {
     const apiKey = "rehab-support-app-2026-key";
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/v1/login-status?user_id=${encodeURIComponent(userId)}`, {
+        const response = await fetch(`/api/v1/login-status?user_id=${encodeURIComponent(userId)}`, {
             method: "GET",
             headers: {
                 "X-API-KEY": apiKey,
