@@ -242,7 +242,7 @@
 
     try {
       // 1. 現在のパスワードが合致するか検証
-      const authResponse = await fetch("http://127.0.0.1:5000/api/v1/login", {
+      const authResponse = await fetch("/api/v1/login", {
         method: "POST",
         headers: {
           "X-API-KEY": "rehab-support-app-2026-key",
@@ -257,7 +257,7 @@
       }
 
       // 💡 2. 本人確認OKなら、新設したID変更APIへリクエストを飛ばしてDBを一斉上書き！
-      const response = await fetch("http://127.0.0.1:5000/api/v1/user-id-update", {
+      const response = await fetch("/api/v1/user-id-update", {
         method: "POST",
         headers: {
           "X-API-KEY": "rehab-support-app-2026-key",
@@ -335,7 +335,7 @@
     if(updateBtn) { updateBtn.disabled = true; updateBtn.textContent = '変更を検証中...'; }
 
     try {
-      const authResponse = await fetch("http://127.0.0.1:5000/api/v1/login", {
+      const authResponse = await fetch("/api/v1/login", {
         method: "POST",
         headers: {
           "X-API-KEY": "rehab-support-app-2026-key",
@@ -352,7 +352,7 @@
         return;
       }
 
-      const response = await fetch("http://127.0.0.1:5000/api/v1/password-reset", {
+      const response = await fetch("/api/v1/password-reset", {
         method: "POST",
         headers: {
           "X-API-KEY": "rehab-support-app-2026-key",
